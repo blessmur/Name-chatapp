@@ -5,8 +5,16 @@ public class ChatMessage {
     private String username;
     private String content;
     private String region;
+    private String type;
 
     public ChatMessage() {
+    }
+
+    public ChatMessage(String username, String content, String region, String type) {
+        this.username = username;
+        this.content = content;
+        this.region = region;
+        this.type = type;
     }
 
     public String getUsername() {
@@ -31,5 +39,13 @@ public class ChatMessage {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

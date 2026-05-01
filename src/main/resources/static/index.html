@@ -39,7 +39,8 @@
             box-sizing: border-box;
         }
 
-        .login-page button {
+        .login-page button,
+        .message-box button {
             background: #2563eb;
             color: white;
             border: none;
@@ -49,7 +50,7 @@
 
         .layout {
             display: grid;
-            grid-template-columns: 260px 1fr 300px;
+            grid-template-columns: 260px 1fr 340px;
             gap: 20px;
             padding: 0 30px 30px;
         }
@@ -84,6 +85,13 @@
             border-radius: 8px;
         }
 
+        #messages li.system {
+            background: #dbeafe;
+            color: #1e40af;
+            font-style: italic;
+            text-align: center;
+        }
+
         .message-box {
             display: flex;
             gap: 10px;
@@ -97,11 +105,6 @@
 
         .message-box button {
             padding: 10px 18px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
         }
 
         .region-item {
@@ -159,7 +162,6 @@
     <h1>Ukraine Regional Chat</h1>
 
     <div class="layout">
-
         <div class="panel">
             <h3>Користувач</h3>
             <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
@@ -172,16 +174,15 @@
             <ul id="messages"></ul>
 
             <div class="message-box">
-                <input id="message" placeholder="Введіть повідомлення">
-                <button onclick="sendMessage()">Надіслати</button>
+                <input id="message" placeholder="Введіть повідомлення" disabled>
+                <button id="sendButton" onclick="sendMessage()" disabled>Надіслати</button>
             </div>
         </div>
 
         <div class="panel">
-            <h3>Користувачі по областях</h3>
+            <h3>Користувачі онлайн по областях</h3>
             <div id="stats"></div>
         </div>
-
     </div>
 </div>
 
@@ -189,6 +190,7 @@
     let stompClient = null;
     let currentUsername = "";
     let currentRegion = "";
+    let connected = false;
 
     const regions = [
         "Вінницька область",
@@ -217,38 +219,44 @@
         "Чернігівська область"
     ];
 
-    function connect() {
+    function connect(callback) {
         let socket = new SockJS('/chat');
         stompClient = Stomp.over(socket);
+        stompClient.debug = null;
 
         stompClient.connect({}, function () {
+            connected = true;
+
             stompClient.subscribe('/topic/messages', function (msg) {
                 let message = JSON.parse(msg.body);
                 showMessage(message);
-                updateStats();
             });
+
+            stompClient.subscribe('/topic/stats', function (msg) {
+                let stats = JSON.parse(msg.body);
+                renderStats(stats);
+            });
+
+            document.getElementById("message").disabled = false;
+            document.getElementById("sendButton").disabled = false;
+
+            if (callback) {
+                callback();
+            }
+        }, function () {
+            connected = false;
+            alert("Помилка підключення до чату");
         });
     }
 
-    async function login() {
-        currentUsername = document.getElementById("loginUsername").value;
+    function login() {
+        currentUsername = document.getElementById("loginUsername").value.trim();
         currentRegion = document.getElementById("loginRegion").value;
 
-        if (currentUsername.trim() === "") {
+        if (currentUsername === "") {
             alert("Введіть ім'я");
             return;
         }
-
-        await fetch('/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: currentUsername,
-                region: currentRegion
-            })
-        });
 
         document.getElementById("currentUsername").innerText = currentUsername;
         document.getElementById("currentRegion").innerText = currentRegion;
@@ -256,57 +264,92 @@
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("chatPage").style.display = "block";
 
-        updateStats();
+        if (!connected) {
+            connect(sendJoinMessage);
+        } else {
+            sendJoinMessage();
+        }
+    }
+
+    function sendJoinMessage() {
+        stompClient.send("/app/join", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            content: "",
+            type: "JOIN"
+        }));
     }
 
     function sendMessage() {
-        let content = document.getElementById("message").value;
+        let content = document.getElementById("message").value.trim();
 
-        if (content.trim() === "") {
+        if (content === "" || !connected) {
             return;
         }
 
         stompClient.send("/app/send", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
-            content: content
+            content: content,
+            type: "CHAT"
         }));
 
         document.getElementById("message").value = "";
     }
 
+    document.getElementById("message").addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
     function showMessage(message) {
         let li = document.createElement("li");
-        li.innerText = message.username + " (" + message.region + "): " + message.content;
+
+        if (message.type === "JOIN" || message.type === "LEAVE") {
+            li.className = "system";
+            li.innerText = message.content;
+        } else {
+            li.innerText = message.username + " (" + message.region + "): " + message.content;
+        }
+
         document.getElementById("messages").appendChild(li);
+
+        let messages = document.getElementById("messages");
+        messages.scrollTop = messages.scrollHeight;
     }
 
-    function updateStats() {
-        fetch('/users/stats')
-            .then(response => response.json())
-            .then(data => {
-                let statsDiv = document.getElementById("stats");
-                statsDiv.innerHTML = "";
+    function renderStats(data) {
+        let statsDiv = document.getElementById("stats");
+        statsDiv.innerHTML = "";
 
-                regions.forEach(region => {
-                    let row = document.createElement("div");
-                    row.className = "region-item";
+        regions.forEach(region => {
+            let row = document.createElement("div");
+            row.className = "region-item";
 
-                    let name = document.createElement("span");
-                    name.innerText = region;
+            let name = document.createElement("span");
+            name.innerText = region;
 
-                    let count = document.createElement("span");
-                    count.className = "region-count";
-                    count.innerText = data[region] || 0;
+            let count = document.createElement("span");
+            count.className = "region-count";
+            count.innerText = data[region] || 0;
 
-                    row.appendChild(name);
-                    row.appendChild(count);
-                    statsDiv.appendChild(row);
-                });
-            });
+            row.appendChild(name);
+            row.appendChild(count);
+            statsDiv.appendChild(row);
+        });
     }
 
-    connect();
+    window.addEventListener("beforeunload", function () {
+        if (stompClient && connected && currentUsername !== "") {
+            stompClient.send("/app/leave", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: "",
+                type: "LEAVE"
+            }));
+        }
+    });
 </script>
 
 </body>
