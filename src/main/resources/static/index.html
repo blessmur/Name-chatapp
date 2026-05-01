@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ukraine Regional Chat</title>
+    <meta charset="UTF-8">
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 25px 0;
+            color: #1f2937;
+        }
+
+        .login-page {
+            width: 350px;
+            margin: 100px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .login-page input,
+        .login-page select,
+        .login-page button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            box-sizing: border-box;
+        }
+
+        .login-page button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr 300px;
+            gap: 20px;
+            padding: 0 30px 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .chat-panel {
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            list-style: none;
+        }
+
+        #messages li {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .message-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .message-box input {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .message-box button {
+            padding: 10px 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .region-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .region-count {
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginPage" class="login-page">
+    <h2>Вхід у чат</h2>
+
+    <input id="loginUsername" placeholder="Введіть ім'я">
+
+    <select id="loginRegion">
+        <option value="Вінницька область">Вінницька область</option>
+        <option value="Волинська область">Волинська область</option>
+        <option value="Дніпропетровська область">Дніпропетровська область</option>
+        <option value="Донецька область">Донецька область</option>
+        <option value="Житомирська область">Житомирська область</option>
+        <option value="Закарпатська область">Закарпатська область</option>
+        <option value="Запорізька область">Запорізька область</option>
+        <option value="Івано-Франківська область">Івано-Франківська область</option>
+        <option value="Київська область">Київська область</option>
+        <option value="Кіровоградська область">Кіровоградська область</option>
+        <option value="Луганська область">Луганська область</option>
+        <option value="Львівська область">Львівська область</option>
+        <option value="Миколаївська область">Миколаївська область</option>
+        <option value="Одеська область">Одеська область</option>
+        <option value="Полтавська область">Полтавська область</option>
+        <option value="Рівненська область">Рівненська область</option>
+        <option value="Сумська область">Сумська область</option>
+        <option value="Тернопільська область">Тернопільська область</option>
+        <option value="Харківська область">Харківська область</option>
+        <option value="Херсонська область">Херсонська область</option>
+        <option value="Хмельницька область">Хмельницька область</option>
+        <option value="Черкаська область">Черкаська область</option>
+        <option value="Чернівецька область">Чернівецька область</option>
+        <option value="Чернігівська область">Чернігівська область</option>
+    </select>
+
+    <button onclick="login()">Увійти</button>
+</div>
+
+<div id="chatPage" style="display: none;">
+    <h1>Ukraine Regional Chat</h1>
+
+    <div class="layout">
+
+        <div class="panel">
+            <h3>Користувач</h3>
+            <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
+            <p><b>Область:</b> <span id="currentRegion"></span></p>
+        </div>
+
+        <div class="panel chat-panel">
+            <h3>Чат</h3>
+
+            <ul id="messages"></ul>
+
+            <div class="message-box">
+                <input id="message" placeholder="Введіть повідомлення">
+                <button onclick="sendMessage()">Надіслати</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Користувачі по областях</h3>
+            <div id="stats"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let stompClient = null;
+    let currentUsername = "";
+    let currentRegion = "";
+
+    const regions = [
+        "Вінницька область",
+        "Волинська область",
+        "Дніпропетровська область",
+        "Донецька область",
+        "Житомирська область",
+        "Закарпатська область",
+        "Запорізька область",
+        "Івано-Франківська область",
+        "Київська область",
+        "Кіровоградська область",
+        "Луганська область",
+        "Львівська область",
+        "Миколаївська область",
+        "Одеська область",
+        "Полтавська область",
+        "Рівненська область",
+        "Сумська область",
+        "Тернопільська область",
+        "Харківська область",
+        "Херсонська область",
+        "Хмельницька область",
+        "Черкаська область",
+        "Чернівецька область",
+        "Чернігівська область"
+    ];
+
+    function connect() {
+        let socket = new SockJS('/chat');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/messages', function (msg) {
+                let message = JSON.parse(msg.body);
+                showMessage(message);
+                updateStats();
+            });
+        });
+    }
+
+    async function login() {
+        currentUsername = document.getElementById("loginUsername").value;
+        currentRegion = document.getElementById("loginRegion").value;
+
+        if (currentUsername.trim() === "") {
+            alert("Введіть ім'я");
+            return;
+        }
+
+        await fetch('/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: currentUsername,
+                region: currentRegion
+            })
+        });
+
+        document.getElementById("currentUsername").innerText = currentUsername;
+        document.getElementById("currentRegion").innerText = currentRegion;
+
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("chatPage").style.display = "block";
+
+        updateStats();
+    }
+
+    function sendMessage() {
+        let content = document.getElementById("message").value;
+
+        if (content.trim() === "") {
+            return;
+        }
+
+        stompClient.send("/app/send", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            content: content
+        }));
+
+        document.getElementById("message").value = "";
+    }
+
+    function showMessage(message) {
+        let li = document.createElement("li");
+        li.innerText = message.username + " (" + message.region + "): " + message.content;
+        document.getElementById("messages").appendChild(li);
+    }
+
+    function updateStats() {
+        fetch('/users/stats')
+            .then(response => response.json())
+            .then(data => {
+                let statsDiv = document.getElementById("stats");
+                statsDiv.innerHTML = "";
+
+                regions.forEach(region => {
+                    let row = document.createElement("div");
+                    row.className = "region-item";
+
+                    let name = document.createElement("span");
+                    name.innerText = region;
+
+                    let count = document.createElement("span");
+                    count.className = "region-count";
+                    count.innerText = data[region] || 0;
+
+                    row.appendChild(name);
+                    row.appendChild(count);
+                    statsDiv.appendChild(row);
+                });
+            });
+    }
+
+    connect();
+</script>
+
+</body>
+</html>
