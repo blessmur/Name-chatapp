@@ -619,10 +619,6 @@
                         </option>
                     </select>
 
-                    <select id="regionSelect"
-                            onchange="changeRegion()">
-                    </select>
-
                     <div class="settings-status">
                         <div>
                             Звук:
@@ -752,20 +748,17 @@ let privateSubscription = null;
 
 let currentUsername = "";
 
-let currentRegion = "Запорізька область";
-let currentCity = "Запоріжжя";
+let currentRegion = "";
+let currentCity = "";
 
-let currentLatitude = 47.8388;
-let currentLongitude = 35.1396;
+let currentLatitude = 0;
+let currentLongitude = 0;
 
 let detectedRegion = "";
 let detectedCity = "";
 
-let detectedLatitude = 47.8388;
-let detectedLongitude = 35.1396;
-
-let selectedRegion =
-    localStorage.getItem("selectedRegion") || "";
+let detectedLatitude = 0;
+let detectedLongitude = 0;
 
 let currentStatus = "ONLINE";
 
@@ -982,29 +975,105 @@ function loginAfterAuth() {
     }
 }
 
+function normalizeRegion(region) {
+
+    if (!region) return "Невідома область";
+
+    region = region.toLowerCase();
+
+    if (region.includes("zap")) return "Запорізька область";
+    if (region.includes("lviv")) return "Львівська область";
+    if (region.includes("kyiv")) return "Київська область";
+    if (region.includes("khark")) return "Харківська область";
+    if (region.includes("odes")) return "Одеська область";
+    if (region.includes("dnip")) return "Дніпропетровська область";
+
+    return region;
+}
+
 function detectRegion() {
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position) {
+
+                currentLatitude = position.coords.latitude;
+                currentLongitude = position.coords.longitude;
+
+                fetch(
+                    "https://nominatim.openstreetmap.org/reverse?format=json"
+                    + "&lat=" + currentLatitude
+                    + "&lon=" + currentLongitude
+                )
+                    .then(response => response.json())
+                    .then(data => {
+
+                        let address = data.address || {};
+
+                        currentCity =
+                            address.city
+                            || address.town
+                            || address.village
+                            || "Невідоме місто";
+
+                        currentRegion =
+                            address.state
+                            || address.region
+                            || "Невідома область";
+
+                        currentRegion =
+                            normalizeRegion(currentRegion);
+
+                        document.getElementById("detectedRegion").innerText =
+                            currentRegion;
+
+                        document.getElementById("detectedCity").innerText =
+                            currentCity;
+
+                        document.getElementById("detectedCoords").innerText =
+                            Number(currentLatitude).toFixed(4)
+                            + ", "
+                            + Number(currentLongitude).toFixed(4);
+
+                        updateUserInfoOnPage();
+                    });
+
+            },
+
+            function() {
+
+                detectByIP();
+
+            }
+
+        );
+
+    } else {
+
+        detectByIP();
+
+    }
+}
+
+function detectByIP() {
+
     fetch("/api/geo/region")
         .then(response => response.json())
         .then(data => {
-            detectedRegion = data.region || "Запорізька область";
-            detectedCity = data.city || "Запоріжжя";
-            detectedLatitude = data.latitude || 47.8388;
-            detectedLongitude = data.longitude || 35.1396;
 
-            currentRegion = selectedRegion !== ""
-                ? selectedRegion
-                : detectedRegion;
+            currentRegion =
+                normalizeRegion(data.region);
 
-            currentCity = detectedCity;
+            currentCity =
+                data.city || "Невідоме місто";
 
-            if (selectedRegion !== "") {
-                let center = getRegionCenter(selectedRegion);
-                currentLatitude = center[0];
-                currentLongitude = center[1];
-            } else {
-                currentLatitude = detectedLatitude;
-                currentLongitude = detectedLongitude;
-            }
+            currentLatitude =
+                data.latitude || 47.8388;
+
+            currentLongitude =
+                data.longitude || 35.1396;
 
             document.getElementById("detectedRegion").innerText =
                 currentRegion;
@@ -1017,38 +1086,19 @@ function detectRegion() {
                 + ", "
                 + Number(currentLongitude).toFixed(4);
 
-            document.getElementById("regionSelect").value =
-                currentRegion;
-
             updateUserInfoOnPage();
+
         })
         .catch(() => {
-            currentRegion = selectedRegion !== ""
-                ? selectedRegion
-                : "Запорізька область";
 
-            currentCity = "Запоріжжя";
-
-            let center = getRegionCenter(currentRegion);
-
-            currentLatitude = center[0];
-            currentLongitude = center[1];
+            currentRegion = "Невідома область";
+            currentCity = "Невідоме місто";
 
             document.getElementById("detectedRegion").innerText =
                 currentRegion;
 
             document.getElementById("detectedCity").innerText =
                 currentCity;
-
-            document.getElementById("detectedCoords").innerText =
-                Number(currentLatitude).toFixed(4)
-                + ", "
-                + Number(currentLongitude).toFixed(4);
-
-            document.getElementById("regionSelect").value =
-                currentRegion;
-
-            updateUserInfoOnPage();
         });
 }
 
@@ -1184,42 +1234,6 @@ function changeStatus() {
 
     document.getElementById("currentStatus").innerText =
         getStatusText(currentStatus);
-
-    if (connected && stompClient && currentUsername !== "") {
-        stompClient.send("/app/status", {}, JSON.stringify({
-            username: currentUsername,
-            region: currentRegion,
-            city: currentCity,
-            latitude: currentLatitude,
-            longitude: currentLongitude,
-            content: "",
-            type: "STATUS",
-            status: currentStatus
-        }));
-    }
-}
-
-function changeRegion() {
-    selectedRegion = document.getElementById("regionSelect").value;
-    currentRegion = selectedRegion;
-
-    let center = getRegionCenter(currentRegion);
-
-    currentLatitude = center[0];
-    currentLongitude = center[1];
-
-    localStorage.setItem("selectedRegion", selectedRegion);
-
-    document.getElementById("detectedRegion").innerText =
-        currentRegion;
-
-    document.getElementById("detectedCoords").innerText =
-        Number(currentLatitude).toFixed(4)
-        + ", "
-        + Number(currentLongitude).toFixed(4);
-
-    updateUserInfoOnPage();
-    loadHistory();
 
     if (connected && stompClient && currentUsername !== "") {
         stompClient.send("/app/status", {}, JSON.stringify({
@@ -1858,7 +1872,6 @@ window.addEventListener("beforeunload", function () {
     }
 });
 
-createRegionSelect();
 loadSettings();
 detectRegion();
 
