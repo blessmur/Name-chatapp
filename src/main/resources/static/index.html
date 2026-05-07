@@ -8,30 +8,64 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 
     <style>
+        :root {
+            --bg: #f2f4f8;
+            --panel-bg: #ffffff;
+            --text: #111827;
+            --muted: #374151;
+            --border: #e5e7eb;
+            --chat-bg: #fafafa;
+            --message-bg: #e5e7eb;
+            --my-message-bg: #2563eb;
+            --private-bg: #fef3c7;
+            --system-bg: #dbeafe;
+            --system-text: #1e40af;
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        body.dark {
+            --bg: #111827;
+            --panel-bg: #1f2937;
+            --text: #f9fafb;
+            --muted: #d1d5db;
+            --border: #374151;
+            --chat-bg: #111827;
+            --message-bg: #374151;
+            --my-message-bg: #2563eb;
+            --private-bg: #78350f;
+            --system-bg: #1e3a8a;
+            --system-text: #dbeafe;
+            --primary: #60a5fa;
+            --danger: #ef4444;
+            --shadow: rgba(0,0,0,0.35);
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f2f4f8;
+            background: var(--bg);
+            color: var(--text);
         }
 
         h1 {
             text-align: center;
             margin: 25px 0;
-            color: #1f2937;
+            color: var(--text);
         }
 
         .login-page {
             width: 350px;
             margin: 100px auto;
-            background: white;
+            background: var(--panel-bg);
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px var(--shadow);
             text-align: center;
         }
 
         .login-page input,
-        .login-page select,
         .login-page button {
             width: 100%;
             padding: 10px;
@@ -39,13 +73,35 @@
             box-sizing: border-box;
         }
 
+        .login-page input,
+        .message-box input,
+        .settings-menu select,
+        .search-input {
+            background: var(--panel-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
         .login-page button,
-        .message-box button {
-            background: #2563eb;
+        .message-box button,
+        .settings-button {
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+        }
+
+        .detected-region-box {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--chat-bg);
+            border: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
         }
 
         .layout {
@@ -53,13 +109,21 @@
             grid-template-columns: 260px 1fr 340px;
             gap: 20px;
             padding: 0 30px 30px;
+            align-items: stretch;
         }
 
         .panel {
-            background: white;
+            background: var(--panel-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .user-panel {
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .chat-panel {
@@ -68,28 +132,136 @@
             flex-direction: column;
         }
 
+        .stats-panel {
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .chat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-button {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 12px;
+            cursor: pointer;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--message-bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .tabs button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        #privateInfo {
+            display: none;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: var(--private-bg);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #privateInfo button {
+            float: right;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text);
+            font-weight: bold;
+        }
+
         #messages {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--chat-bg);
             list-style: none;
         }
 
         #messages li {
             margin-bottom: 10px;
-            padding: 8px;
-            background: #e5e7eb;
-            border-radius: 8px;
+            padding: 9px 11px;
+            border-radius: 12px;
+            color: var(--text);
+            max-width: 75%;
+            clear: both;
+            word-wrap: break-word;
         }
 
         #messages li.system {
-            background: #dbeafe;
-            color: #1e40af;
+            background: var(--system-bg);
+            color: var(--system-text);
             font-style: italic;
             text-align: center;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #messages li.my-message {
+            background: var(--my-message-bg);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        #messages li.other-message {
+            background: var(--message-bg);
+            margin-right: auto;
+        }
+
+        #messages li.private {
+            background: var(--private-bg);
+            color: var(--text);
+        }
+
+        .message-meta {
+            font-size: 12px;
+            opacity: 0.75;
+            margin-bottom: 4px;
+        }
+
+        .message-content {
+            font-size: 14px;
+        }
+
+        #typingIndicator {
+            min-height: 18px;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 5px;
         }
 
         .message-box {
@@ -107,17 +279,125 @@
             padding: 10px 18px;
         }
 
-        .region-item {
+        .settings-box {
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+
+        .settings-main-button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .settings-menu {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .settings-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .settings-menu select {
+            width: 100%;
+            padding: 9px;
+            margin-top: 8px;
+        }
+
+        .settings-status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .region-header {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #eee;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
             font-size: 14px;
+            cursor: pointer;
+        }
+
+        .region-name {
+            display: flex;
+            gap: 6px;
+            align-items: center;
         }
 
         .region-count {
             font-weight: bold;
-            color: #2563eb;
+            color: var(--primary);
+        }
+
+        .region-users {
+            display: none;
+            margin: 5px 0 10px 22px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .region-users div {
+            padding: 4px 0;
+            cursor: pointer;
+        }
+
+        .region-users div:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            h1 {
+                font-size: 24px;
+                margin: 18px 0;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+                padding: 0 15px 20px;
+            }
+
+            .user-panel,
+            .chat-panel,
+            .stats-panel {
+                height: auto;
+            }
+
+            .chat-panel {
+                min-height: 560px;
+            }
+
+            .message-box {
+                flex-direction: column;
+            }
+
+            .message-box button {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            #messages li {
+                max-width: 90%;
+            }
+
+            .login-page {
+                width: calc(100% - 40px);
+                margin: 60px auto;
+            }
         }
     </style>
 </head>
@@ -128,32 +408,10 @@
 
     <input id="loginUsername" placeholder="Введіть ім'я">
 
-    <select id="loginRegion">
-        <option value="Вінницька область">Вінницька область</option>
-        <option value="Волинська область">Волинська область</option>
-        <option value="Дніпропетровська область">Дніпропетровська область</option>
-        <option value="Донецька область">Донецька область</option>
-        <option value="Житомирська область">Житомирська область</option>
-        <option value="Закарпатська область">Закарпатська область</option>
-        <option value="Запорізька область">Запорізька область</option>
-        <option value="Івано-Франківська область">Івано-Франківська область</option>
-        <option value="Київська область">Київська область</option>
-        <option value="Кіровоградська область">Кіровоградська область</option>
-        <option value="Луганська область">Луганська область</option>
-        <option value="Львівська область">Львівська область</option>
-        <option value="Миколаївська область">Миколаївська область</option>
-        <option value="Одеська область">Одеська область</option>
-        <option value="Полтавська область">Полтавська область</option>
-        <option value="Рівненська область">Рівненська область</option>
-        <option value="Сумська область">Сумська область</option>
-        <option value="Тернопільська область">Тернопільська область</option>
-        <option value="Харківська область">Харківська область</option>
-        <option value="Херсонська область">Херсонська область</option>
-        <option value="Хмельницька область">Хмельницька область</option>
-        <option value="Черкаська область">Черкаська область</option>
-        <option value="Чернівецька область">Чернівецька область</option>
-        <option value="Чернігівська область">Чернігівська область</option>
-    </select>
+    <div class="detected-region-box">
+        <div>Ваша область буде визначена автоматично за IP.</div>
+        <div><b>Область:</b> <span id="detectedRegion">визначається...</span></div>
+    </div>
 
     <button onclick="login()">Увійти</button>
 </div>
@@ -162,16 +420,57 @@
     <h1>Ukraine Regional Chat</h1>
 
     <div class="layout">
-        <div class="panel">
-            <h3>Користувач</h3>
-            <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
-            <p><b>Область:</b> <span id="currentRegion"></span></p>
+        <div class="panel user-panel">
+            <div>
+                <h3>Користувач</h3>
+                <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
+                <p><b>Область:</b> <span id="currentRegion"></span></p>
+                <p><b>Статус:</b> <span id="currentStatus">🟢 Онлайн</span></p>
+            </div>
+
+            <div class="settings-box">
+                <button class="settings-main-button" onclick="toggleSettingsMenu()">⚙️ Налаштування</button>
+
+                <div id="settingsMenu" class="settings-menu">
+                    <button class="settings-button" onclick="toggleTheme()">🌙 Змінити тему</button>
+                    <button class="settings-button" onclick="changeUsername()">✏️ Змінити ім’я</button>
+                    <button class="settings-button" onclick="toggleSound()">🔔 Звук повідомлень</button>
+
+                    <select id="statusSelect" onchange="changeStatus()">
+                        <option value="ONLINE">🟢 Онлайн</option>
+                        <option value="AWAY">🟡 Відійшов</option>
+                        <option value="BUSY">🔴 Зайнятий</option>
+                    </select>
+
+                    <div class="settings-status">
+                        <div>Звук: <b id="soundStatus">Увімкнено</b></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="panel chat-panel">
-            <h3>Чат</h3>
+            <div class="chat-top">
+                <h3>Чат</h3>
+                <button class="logout-button" onclick="logout()">Вийти</button>
+            </div>
+
+            <div class="tabs">
+                <button id="tabGENERAL" class="active" onclick="switchRoom('GENERAL')">🌐 Загальний</button>
+                <button id="tabREGION" onclick="switchRoom('REGION')">🏠 Моя область</button>
+                <button id="tabPRIVATE" onclick="switchRoom('PRIVATE')">💬 Приватні</button>
+            </div>
+
+            <input id="searchInput" class="search-input" placeholder="🔍 Пошук по повідомленнях" oninput="renderCurrentRoom()">
+
+            <div id="privateInfo">
+                Приватний чат з: <b id="privateRecipientName"></b>
+                <button onclick="cancelPrivateMode()">×</button>
+            </div>
 
             <ul id="messages"></ul>
+
+            <div id="typingIndicator"></div>
 
             <div class="message-box">
                 <input id="message" placeholder="Введіть повідомлення" disabled>
@@ -179,7 +478,7 @@
             </div>
         </div>
 
-        <div class="panel">
+        <div class="panel stats-panel">
             <h3>Користувачі онлайн по областях</h3>
             <div id="stats"></div>
         </div>
@@ -188,9 +487,26 @@
 
 <script>
     let stompClient = null;
+    let privateSubscription = null;
+
     let currentUsername = "";
-    let currentRegion = "";
+    let currentRegion = "Запорізька область";
+    let currentStatus = "ONLINE";
     let connected = false;
+
+    let currentRoom = "GENERAL";
+    let soundEnabled = true;
+    let privateRecipient = "";
+
+    let typingTimeout = null;
+    let typingSendTimeout = null;
+
+    let messagesStore = {
+        GENERAL: [],
+        REGION: [],
+        PRIVATE: [],
+        SYSTEM: []
+    };
 
     const regions = [
         "Вінницька область",
@@ -219,39 +535,227 @@
         "Чернігівська область"
     ];
 
+    function detectRegion() {
+        fetch("/api/geo/region")
+            .then(response => response.json())
+            .then(data => {
+                currentRegion = data.region || "Запорізька область";
+                document.getElementById("detectedRegion").innerText = currentRegion;
+            })
+            .catch(() => {
+                currentRegion = "Запорізька область";
+                document.getElementById("detectedRegion").innerText = currentRegion;
+            });
+    }
+
+    function toggleSettingsMenu() {
+        let menu = document.getElementById("settingsMenu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark");
+        localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    }
+
+    function changeUsername() {
+        let newName = prompt("Введіть нове ім’я:");
+
+        if (newName === null) return;
+
+        newName = newName.trim();
+
+        if (newName === "") {
+            alert("Ім’я не може бути порожнім");
+            return;
+        }
+
+        let oldName = currentUsername;
+
+        currentUsername = newName;
+        document.getElementById("currentUsername").innerText = currentUsername;
+
+        subscribePrivateMessages();
+        loadHistory();
+
+        if (connected && stompClient) {
+            stompClient.send("/app/leave", {}, JSON.stringify({
+                username: oldName,
+                region: currentRegion,
+                content: "",
+                type: "LEAVE"
+            }));
+
+            stompClient.send("/app/join", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: "",
+                type: "JOIN",
+                status: currentStatus
+            }));
+        }
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem("soundEnabled", soundEnabled ? "true" : "false");
+        updateSettingsStatus();
+    }
+
+    function changeStatus() {
+        currentStatus = document.getElementById("statusSelect").value;
+        localStorage.setItem("status", currentStatus);
+
+        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
+
+        if (connected && stompClient && currentUsername !== "") {
+            stompClient.send("/app/status", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: "",
+                type: "STATUS",
+                status: currentStatus
+            }));
+        }
+    }
+
+    function getStatusText(status) {
+        if (status === "AWAY") return "🟡 Відійшов";
+        if (status === "BUSY") return "🔴 Зайнятий";
+        return "🟢 Онлайн";
+    }
+
+    function updateSettingsStatus() {
+        document.getElementById("soundStatus").innerText = soundEnabled ? "Увімкнено" : "Вимкнено";
+    }
+
+    function loadSettings() {
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark");
+        }
+
+        soundEnabled = localStorage.getItem("soundEnabled") !== "false";
+        currentStatus = localStorage.getItem("status") || "ONLINE";
+
+        document.getElementById("statusSelect").value = currentStatus;
+        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
+
+        updateSettingsStatus();
+    }
+
+    function getCurrentTime() {
+        return new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function formatMessageTime(createdAt) {
+        if (!createdAt) {
+            return getCurrentTime();
+        }
+
+        let date = new Date(createdAt);
+
+        return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function playNotificationSound() {
+        if (!soundEnabled) return;
+
+        let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+        audio.volume = 0.3;
+        audio.play().catch(function () {});
+    }
+
     function connect(callback) {
-        let socket = new SockJS('/chat');
+        let socket = new SockJS(window.location.origin + "/chat");
         stompClient = Stomp.over(socket);
         stompClient.debug = null;
 
         stompClient.connect({}, function () {
             connected = true;
 
-            stompClient.subscribe('/topic/messages', function (msg) {
+            stompClient.subscribe("/topic/messages", function (msg) {
                 let message = JSON.parse(msg.body);
-                showMessage(message);
+                message.time = formatMessageTime(message.createdAt);
+                messagesStore.SYSTEM.push(message);
+                renderCurrentRoom();
             });
 
-            stompClient.subscribe('/topic/stats', function (msg) {
-                let stats = JSON.parse(msg.body);
-                renderStats(stats);
+            stompClient.subscribe("/topic/room/GENERAL", function (msg) {
+                let message = JSON.parse(msg.body);
+                message.time = formatMessageTime(message.createdAt);
+                messagesStore.GENERAL.push(message);
+                renderCurrentRoom();
+
+                if (message.username !== currentUsername) {
+                    playNotificationSound();
+                }
             });
+
+            stompClient.subscribe("/topic/room/REGION", function (msg) {
+                let message = JSON.parse(msg.body);
+                message.time = formatMessageTime(message.createdAt);
+
+                if (message.region === currentRegion) {
+                    messagesStore.REGION.push(message);
+                    renderCurrentRoom();
+
+                    if (message.username !== currentUsername) {
+                        playNotificationSound();
+                    }
+                }
+            });
+
+            stompClient.subscribe("/topic/stats", function (msg) {
+                renderStats(JSON.parse(msg.body));
+            });
+
+            stompClient.subscribe("/topic/typing", function (msg) {
+                showTyping(JSON.parse(msg.body));
+            });
+
+            subscribePrivateMessages();
 
             document.getElementById("message").disabled = false;
             document.getElementById("sendButton").disabled = false;
 
-            if (callback) {
-                callback();
-            }
+            if (callback) callback();
+
         }, function () {
             connected = false;
-            alert("Помилка підключення до чату");
+
+            setTimeout(function () {
+                connect(callback);
+            }, 3000);
+        });
+    }
+
+    function subscribePrivateMessages() {
+        if (!stompClient || !connected || currentUsername === "") return;
+
+        if (privateSubscription) {
+            privateSubscription.unsubscribe();
+        }
+
+        privateSubscription = stompClient.subscribe("/topic/private/" + currentUsername, function (msg) {
+            let message = JSON.parse(msg.body);
+            message.time = formatMessageTime(message.createdAt);
+            messagesStore.PRIVATE.push(message);
+            renderCurrentRoom();
+
+            if (message.username !== currentUsername) {
+                playNotificationSound();
+            }
         });
     }
 
     function login() {
         currentUsername = document.getElementById("loginUsername").value.trim();
-        currentRegion = document.getElementById("loginRegion").value;
 
         if (currentUsername === "") {
             alert("Введіть ім'я");
@@ -260,6 +764,7 @@
 
         document.getElementById("currentUsername").innerText = currentUsername;
         document.getElementById("currentRegion").innerText = currentRegion;
+        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
 
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("chatPage").style.display = "block";
@@ -272,29 +777,128 @@
     }
 
     function sendJoinMessage() {
+        loadHistory();
+
         stompClient.send("/app/join", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
             content: "",
-            type: "JOIN"
+            type: "JOIN",
+            status: currentStatus
         }));
+
+        changeStatus();
+    }
+
+    function loadHistory() {
+        fetch("/api/messages/general")
+            .then(response => response.json())
+            .then(data => {
+                messagesStore.GENERAL = [];
+                messagesStore.SYSTEM = [];
+
+                data.forEach(message => {
+                    message.time = formatMessageTime(message.createdAt);
+
+                    if (message.type === "JOIN" || message.type === "LEAVE") {
+                        messagesStore.SYSTEM.push(message);
+                    }
+
+                    if (message.type === "GENERAL") {
+                        messagesStore.GENERAL.push(message);
+                    }
+                });
+
+                renderCurrentRoom();
+            });
+
+        fetch("/api/messages/region?region=" + encodeURIComponent(currentRegion))
+            .then(response => response.json())
+            .then(data => {
+                messagesStore.REGION = [];
+
+                data.forEach(message => {
+                    message.time = formatMessageTime(message.createdAt);
+
+                    if (message.type === "REGION") {
+                        messagesStore.REGION.push(message);
+                    }
+                });
+
+                renderCurrentRoom();
+            });
+
+        fetch("/api/messages/private?username=" + encodeURIComponent(currentUsername))
+            .then(response => response.json())
+            .then(data => {
+                messagesStore.PRIVATE = [];
+
+                data.forEach(message => {
+                    message.time = formatMessageTime(message.createdAt);
+                    messagesStore.PRIVATE.push(message);
+                });
+
+                renderCurrentRoom();
+            });
+    }
+
+    function switchRoom(room) {
+        currentRoom = room;
+
+        document.querySelectorAll(".tabs button").forEach(function (button) {
+            button.classList.remove("active");
+        });
+
+        document.getElementById("tab" + room).classList.add("active");
+
+        if (room === "GENERAL") {
+            document.getElementById("message").placeholder = "Повідомлення в загальний чат";
+        }
+
+        if (room === "REGION") {
+            document.getElementById("message").placeholder = "Повідомлення в чат області";
+        }
+
+        if (room === "PRIVATE") {
+            if (privateRecipient !== "") {
+                document.getElementById("message").placeholder = "Приватне повідомлення для " + privateRecipient;
+            } else {
+                document.getElementById("message").placeholder = "Оберіть користувача справа";
+            }
+        }
+
+        renderCurrentRoom();
     }
 
     function sendMessage() {
         let content = document.getElementById("message").value.trim();
 
-        if (content === "" || !connected) {
-            return;
+        if (content === "" || !connected) return;
+
+        if (currentRoom === "PRIVATE") {
+            if (privateRecipient === "") {
+                alert("Оберіть користувача справа у списку онлайн");
+                return;
+            }
+
+            stompClient.send("/app/private", {}, JSON.stringify({
+                username: currentUsername,
+                recipient: privateRecipient,
+                region: currentRegion,
+                content: content,
+                type: "PRIVATE"
+            }));
+        } else {
+            stompClient.send("/app/room", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: content,
+                type: currentRoom
+            }));
         }
 
-        stompClient.send("/app/send", {}, JSON.stringify({
-            username: currentUsername,
-            region: currentRegion,
-            content: content,
-            type: "CHAT"
-        }));
-
         document.getElementById("message").value = "";
+        document.getElementById("typingIndicator").innerText = "";
     }
 
     document.getElementById("message").addEventListener("keydown", function (event) {
@@ -303,20 +907,158 @@
         }
     });
 
-    function showMessage(message) {
+    document.getElementById("message").addEventListener("input", function () {
+        sendTyping();
+    });
+
+    function sendTyping() {
+        if (!connected || !stompClient || currentUsername === "") return;
+
+        if (typingSendTimeout) return;
+
+        stompClient.send("/app/typing", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            content: currentRoom,
+            type: "TYPING",
+            recipient: privateRecipient
+        }));
+
+        typingSendTimeout = setTimeout(function () {
+            typingSendTimeout = null;
+        }, 800);
+    }
+
+    function showTyping(message) {
+        if (message.username === currentUsername) return;
+
+        if (message.content !== currentRoom) return;
+
+        if (currentRoom === "REGION" && message.region !== currentRegion) return;
+
+        if (currentRoom === "PRIVATE") {
+            if (message.recipient !== currentUsername) return;
+            document.getElementById("typingIndicator").innerText = message.username + " пише приватне повідомлення...";
+        } else {
+            document.getElementById("typingIndicator").innerText = message.username + " друкує...";
+        }
+
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(function () {
+            document.getElementById("typingIndicator").innerText = "";
+        }, 2000);
+    }
+
+    function renderCurrentRoom() {
+        let messagesList = document.getElementById("messages");
+        let searchText = document.getElementById("searchInput").value.toLowerCase();
+
+        messagesList.innerHTML = "";
+
+        let list = [];
+
+        if (currentRoom === "GENERAL") {
+            list = messagesStore.SYSTEM.concat(messagesStore.GENERAL);
+        }
+
+        if (currentRoom === "REGION") {
+            list = messagesStore.SYSTEM.concat(messagesStore.REGION);
+        }
+
+        if (currentRoom === "PRIVATE") {
+            list = messagesStore.PRIVATE;
+        }
+
+        list.forEach(function (message) {
+            let textForSearch = (
+                (message.username || "") + " " +
+                (message.region || "") + " " +
+                (message.content || "") + " " +
+                (message.recipient || "")
+            ).toLowerCase();
+
+            if (!textForSearch.includes(searchText)) {
+                return;
+            }
+
+            appendMessageToList(message);
+        });
+
+        messagesList.scrollTop = messagesList.scrollHeight;
+    }
+
+    function appendMessageToList(message) {
         let li = document.createElement("li");
 
         if (message.type === "JOIN" || message.type === "LEAVE") {
             li.className = "system";
-            li.innerText = message.content;
-        } else {
-            li.innerText = message.username + " (" + message.region + "): " + message.content;
+            li.innerText = "[" + message.time + "] " + message.content;
+            document.getElementById("messages").appendChild(li);
+            return;
         }
 
-        document.getElementById("messages").appendChild(li);
+        if (message.type === "PRIVATE") {
+            li.className = message.username === currentUsername ? "my-message private" : "other-message private";
+        } else {
+            li.className = message.username === currentUsername ? "my-message" : "other-message";
+        }
 
-        let messages = document.getElementById("messages");
-        messages.scrollTop = messages.scrollHeight;
+        let meta = document.createElement("div");
+        meta.className = "message-meta";
+
+        if (message.type === "PRIVATE") {
+            meta.innerText = "[" + message.time + "] 🔒 " + message.username + " → " + message.recipient;
+        } else {
+            meta.innerText = "[" + message.time + "] " + message.username + " • " + message.region;
+        }
+
+        let content = document.createElement("div");
+        content.className = "message-content";
+        content.innerText = message.content;
+
+        li.appendChild(meta);
+        li.appendChild(content);
+
+        document.getElementById("messages").appendChild(li);
+    }
+
+    function logout() {
+        if (stompClient && connected && currentUsername !== "") {
+            stompClient.send("/app/leave", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: "",
+                type: "LEAVE"
+            }));
+
+            stompClient.disconnect(function () {
+                location.reload();
+            });
+        } else {
+            location.reload();
+        }
+    }
+
+    function startPrivateMessage(username) {
+        if (username === currentUsername) return;
+
+        privateRecipient = username;
+
+        document.getElementById("privateRecipientName").innerText = username;
+        document.getElementById("privateInfo").style.display = "block";
+
+        switchRoom("PRIVATE");
+    }
+
+    function cancelPrivateMode() {
+        privateRecipient = "";
+
+        document.getElementById("privateInfo").style.display = "none";
+        document.getElementById("privateRecipientName").innerText = "";
+
+        if (currentRoom === "PRIVATE") {
+            document.getElementById("message").placeholder = "Оберіть користувача справа";
+        }
     }
 
     function renderStats(data) {
@@ -324,19 +1066,61 @@
         statsDiv.innerHTML = "";
 
         regions.forEach(region => {
-            let row = document.createElement("div");
-            row.className = "region-item";
+            let users = data[region] || [];
+
+            let wrapper = document.createElement("div");
+
+            let header = document.createElement("div");
+            header.className = "region-header";
 
             let name = document.createElement("span");
-            name.innerText = region;
+            name.className = "region-name";
+            name.innerHTML = `<span class="arrow">▶</span><span>${region}</span>`;
 
             let count = document.createElement("span");
             count.className = "region-count";
-            count.innerText = data[region] || 0;
+            count.innerText = users.length;
 
-            row.appendChild(name);
-            row.appendChild(count);
-            statsDiv.appendChild(row);
+            let usersDiv = document.createElement("div");
+            usersDiv.className = "region-users";
+
+            if (users.length === 0) {
+                usersDiv.innerHTML = "<div>Немає користувачів онлайн</div>";
+            } else {
+                users.forEach(user => {
+                    let username = user.username;
+                    let status = user.status;
+
+                    let userDiv = document.createElement("div");
+                    userDiv.innerText = getStatusText(status) + " " + username;
+
+                    userDiv.onclick = function () {
+                        startPrivateMessage(username);
+                    };
+
+                    usersDiv.appendChild(userDiv);
+                });
+            }
+
+            header.onclick = function () {
+                let arrow = header.querySelector(".arrow");
+
+                if (usersDiv.style.display === "block") {
+                    usersDiv.style.display = "none";
+                    arrow.innerText = "▶";
+                } else {
+                    usersDiv.style.display = "block";
+                    arrow.innerText = "▼";
+                }
+            };
+
+            header.appendChild(name);
+            header.appendChild(count);
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(usersDiv);
+
+            statsDiv.appendChild(wrapper);
         });
     }
 
@@ -350,6 +1134,9 @@
             }));
         }
     });
+
+    loadSettings();
+    detectRegion();
 </script>
 
 </body>
