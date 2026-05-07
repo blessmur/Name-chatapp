@@ -86,8 +86,7 @@
 
         .login-page button,
         .message-box button,
-        .settings-button,
-        .map-button {
+        .settings-button {
             background: var(--primary);
             color: white;
             border: none;
@@ -108,7 +107,7 @@
 
         .layout {
             display: grid;
-            grid-template-columns: 260px 1fr 380px;
+            grid-template-columns: 260px 1fr 340px;
             gap: 20px;
             padding: 0 30px 30px;
         }
@@ -326,44 +325,85 @@
             background: var(--chat-bg);
         }
 
-        .map-header {
+        .open-map-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .map-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .map-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-modal-content {
+            width: min(1050px, 96vw);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--panel-bg);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .map-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
+            gap: 15px;
         }
 
-        .map-header h3 {
+        .map-modal-header h2 {
             margin: 0;
-            font-size: 16px;
         }
 
-        .map-button {
-            padding: 7px 10px;
-            font-size: 13px;
+        .map-modal-header button {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .map-modal-info {
+            color: var(--muted);
+            margin: 10px 0 18px;
         }
 
         .ukraine-map {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            transition: 0.25s;
-        }
-
-        .ukraine-map.big {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 9px;
+            gap: 12px;
         }
 
         .map-region {
-            min-height: 48px;
-            padding: 6px;
-            border-radius: 9px;
+            min-height: 82px;
+            padding: 12px;
+            border-radius: 12px;
             border: 1px solid var(--border);
-            background: var(--panel-bg);
+            background: var(--chat-bg);
             cursor: pointer;
-            font-size: 11px;
+            font-size: 14px;
             color: var(--text);
             display: flex;
             flex-direction: column;
@@ -372,7 +412,7 @@
         }
 
         .map-region:hover {
-            transform: scale(1.05);
+            transform: scale(1.04);
             border-color: var(--primary);
         }
 
@@ -388,7 +428,7 @@
 
         .map-region-count {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 22px;
             color: var(--success);
         }
 
@@ -553,17 +593,27 @@
 
         <div class="panel stats-panel">
             <div class="map-box">
-                <div class="map-header">
-                    <h3>🗺️ Карта України онлайн</h3>
-                    <button class="map-button" onclick="toggleMapSize()">Збільшити</button>
-                </div>
-
-                <div id="ukraineMap" class="ukraine-map"></div>
+                <button class="open-map-button" onclick="openMapModal()">🗺️ Відкрити карту України</button>
             </div>
 
             <h3>Користувачі онлайн по областях</h3>
             <div id="stats"></div>
         </div>
+    </div>
+</div>
+
+<div id="mapModal" class="map-modal">
+    <div class="map-modal-content">
+        <div class="map-modal-header">
+            <h2>🗺️ Карта України онлайн</h2>
+            <button onclick="closeMapModal()">×</button>
+        </div>
+
+        <p class="map-modal-info">
+            Натисніть на область, щоб перейти до її регіонального чату. Число показує кількість онлайн-користувачів.
+        </p>
+
+        <div id="ukraineMap" class="ukraine-map"></div>
     </div>
 </div>
 
@@ -665,6 +715,14 @@
             .replace("Хмельницька", "Хмельн.");
     }
 
+    function openMapModal() {
+        document.getElementById("mapModal").classList.add("show");
+    }
+
+    function closeMapModal() {
+        document.getElementById("mapModal").classList.remove("show");
+    }
+
     function updateMapStats(data) {
         mapStats = data || {};
 
@@ -694,6 +752,7 @@
         updateMapStats(mapStats);
         loadHistory();
         switchRoom("REGION");
+        closeMapModal();
 
         if (connected && stompClient && currentUsername !== "") {
             stompClient.send("/app/status", {}, JSON.stringify({
@@ -703,19 +762,6 @@
                 type: "STATUS",
                 status: currentStatus
             }));
-        }
-    }
-
-    function toggleMapSize() {
-        let map = document.getElementById("ukraineMap");
-        let button = document.querySelector(".map-button");
-
-        map.classList.toggle("big");
-
-        if (map.classList.contains("big")) {
-            button.innerText = "Зменшити";
-        } else {
-            button.innerText = "Збільшити";
         }
     }
 
