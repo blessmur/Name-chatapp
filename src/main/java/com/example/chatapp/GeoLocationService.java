@@ -14,16 +14,20 @@ import java.util.Map;
 @Service
 public class GeoLocationService {
 
-    public String detectRegionByIp(String ip) {
+    public GeoInfo detectGeoByIp(String ip) {
         if (ip == null || ip.isBlank() || isLocalIp(ip)) {
-            return "Запорізька область";
+            return defaultGeo();
         }
 
         try {
             String encodedIp = URLEncoder.encode(ip, StandardCharsets.UTF_8);
-            URL url = new URL("http://ip-api.com/json/" + encodedIp + "?fields=status,countryCode,regionName,city,message");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+            URL url = new URL(
+                    "http://ip-api.com/json/" + encodedIp +
+                            "?fields=status,countryCode,regionName,city,lat,lon,message"
+            );
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(3000);
             connection.setReadTimeout(3000);
@@ -41,23 +45,54 @@ public class GeoLocationService {
             String json = response.toString();
 
             if (!json.contains("\"status\":\"success\"")) {
-                return "Запорізька область";
+                return defaultGeo();
             }
 
             if (!json.contains("\"countryCode\":\"UA\"")) {
-                return "Запорізька область";
+                return defaultGeo();
             }
 
-            String regionName = extractValue(json, "regionName");
-            String city = extractValue(json, "city");
+            String regionName = extractStringValue(json, "regionName");
+            String city = extractStringValue(json, "city");
+            Double latitude = extractDoubleValue(json, "lat");
+            Double longitude = extractDoubleValue(json, "lon");
 
-            return mapToUkrainianRegion(regionName, city);
+            String region = mapToUkrainianRegion(regionName, city);
+
+            if (latitude == null || longitude == null) {
+                RegionCenter center = getRegionCenter(region);
+                latitude = center.latitude;
+                longitude = center.longitude;
+            }
+
+            return new GeoInfo(
+                    ip,
+                    region,
+                    city == null || city.isBlank() ? "Невідоме місто" : city,
+                    latitude,
+                    longitude
+            );
+
         } catch (Exception e) {
-            return "Запорізька область";
+            return defaultGeo();
         }
     }
 
-    private String extractValue(String json, String key) {
+    public String detectRegionByIp(String ip) {
+        return detectGeoByIp(ip).getRegion();
+    }
+
+    private GeoInfo defaultGeo() {
+        return new GeoInfo(
+                "local",
+                "Запорізька область",
+                "Запоріжжя",
+                47.8388,
+                35.1396
+        );
+    }
+
+    private String extractStringValue(String json, String key) {
         String search = "\"" + key + "\":\"";
         int start = json.indexOf(search);
 
@@ -73,6 +108,39 @@ public class GeoLocationService {
         }
 
         return json.substring(start, end);
+    }
+
+    private Double extractDoubleValue(String json, String key) {
+        String search = "\"" + key + "\":";
+        int start = json.indexOf(search);
+
+        if (start == -1) {
+            return null;
+        }
+
+        start += search.length();
+        int endComma = json.indexOf(",", start);
+        int endBrace = json.indexOf("}", start);
+
+        int end;
+
+        if (endComma == -1) {
+            end = endBrace;
+        } else if (endBrace == -1) {
+            end = endComma;
+        } else {
+            end = Math.min(endComma, endBrace);
+        }
+
+        if (end == -1) {
+            return null;
+        }
+
+        try {
+            return Double.parseDouble(json.substring(start, end).trim());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean isLocalIp(String ip) {
@@ -100,7 +168,7 @@ public class GeoLocationService {
     }
 
     private String mapToUkrainianRegion(String regionName, String city) {
-        String value = (regionName + " " + city).toLowerCase();
+        String value = ((regionName == null ? "" : regionName) + " " + (city == null ? "" : city)).toLowerCase();
 
         Map<String, String> regions = new LinkedHashMap<>();
         regions.put("vinnytsia", "Вінницька область");
@@ -144,5 +212,82 @@ public class GeoLocationService {
         }
 
         return "Запорізька область";
+    }
+
+    private RegionCenter getRegionCenter(String region) {
+        Map<String, RegionCenter> centers = new LinkedHashMap<>();
+
+        centers.put("Вінницька область", new RegionCenter(49.2328, 28.4810));
+        centers.put("Волинська область", new RegionCenter(50.7472, 25.3254));
+        centers.put("Дніпропетровська область", new RegionCenter(48.4647, 35.0462));
+        centers.put("Донецька область", new RegionCenter(48.0159, 37.8029));
+        centers.put("Житомирська область", new RegionCenter(50.2547, 28.6587));
+        centers.put("Закарпатська область", new RegionCenter(48.6208, 22.2879));
+        centers.put("Запорізька область", new RegionCenter(47.8388, 35.1396));
+        centers.put("Івано-Франківська область", new RegionCenter(48.9226, 24.7111));
+        centers.put("Київська область", new RegionCenter(50.4501, 30.5234));
+        centers.put("Кіровоградська область", new RegionCenter(48.5079, 32.2623));
+        centers.put("Луганська область", new RegionCenter(48.5740, 39.3078));
+        centers.put("Львівська область", new RegionCenter(49.8397, 24.0297));
+        centers.put("Миколаївська область", new RegionCenter(46.9750, 31.9946));
+        centers.put("Одеська область", new RegionCenter(46.4825, 30.7233));
+        centers.put("Полтавська область", new RegionCenter(49.5883, 34.5514));
+        centers.put("Рівненська область", new RegionCenter(50.6199, 26.2516));
+        centers.put("Сумська область", new RegionCenter(50.9077, 34.7981));
+        centers.put("Тернопільська область", new RegionCenter(49.5535, 25.5948));
+        centers.put("Харківська область", new RegionCenter(49.9935, 36.2304));
+        centers.put("Херсонська область", new RegionCenter(46.6354, 32.6169));
+        centers.put("Хмельницька область", new RegionCenter(49.4229, 26.9871));
+        centers.put("Черкаська область", new RegionCenter(49.4444, 32.0598));
+        centers.put("Чернівецька область", new RegionCenter(48.2915, 25.9403));
+        centers.put("Чернігівська область", new RegionCenter(51.4982, 31.2893));
+
+        return centers.getOrDefault(region, new RegionCenter(47.8388, 35.1396));
+    }
+
+    private static class RegionCenter {
+        private final Double latitude;
+        private final Double longitude;
+
+        private RegionCenter(Double latitude, Double longitude) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+    }
+
+    public static class GeoInfo {
+        private String ip;
+        private String region;
+        private String city;
+        private Double latitude;
+        private Double longitude;
+
+        public GeoInfo(String ip, String region, String city, Double latitude, Double longitude) {
+            this.ip = ip;
+            this.region = region;
+            this.city = city;
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+
+        public String getIp() {
+            return ip;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public Double getLatitude() {
+            return latitude;
+        }
+
+        public Double getLongitude() {
+            return longitude;
+        }
     }
 }

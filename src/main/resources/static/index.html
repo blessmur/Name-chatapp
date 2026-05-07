@@ -7,6 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         :root {
             --bg: #f2f4f8;
@@ -57,7 +60,7 @@
         }
 
         .login-page {
-            width: 350px;
+            width: 370px;
             margin: 100px auto;
             background: var(--panel-bg);
             padding: 25px;
@@ -103,11 +106,12 @@
             font-size: 14px;
             color: var(--muted);
             line-height: 1.5;
+            text-align: left;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: 260px 1fr 340px;
+            grid-template-columns: 260px 1fr 350px;
             gap: 20px;
             padding: 0 30px 30px;
         }
@@ -315,6 +319,7 @@
             margin-top: 10px;
             font-size: 13px;
             color: var(--muted);
+            line-height: 1.5;
         }
 
         .map-box {
@@ -353,8 +358,8 @@
         }
 
         .map-modal-content {
-            width: min(1050px, 96vw);
-            max-height: 90vh;
+            width: min(1150px, 96vw);
+            max-height: 92vh;
             overflow-y: auto;
             background: var(--panel-bg);
             color: var(--text);
@@ -388,52 +393,15 @@
         .map-modal-info {
             color: var(--muted);
             margin: 10px 0 18px;
+            line-height: 1.5;
         }
 
-        .ukraine-map {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-        }
-
-        .map-region {
-            min-height: 82px;
-            padding: 12px;
-            border-radius: 12px;
+        #realUkraineMap {
+            width: 100%;
+            height: 620px;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            background: var(--chat-bg);
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: 0.2s;
-        }
-
-        .map-region:hover {
-            transform: scale(1.04);
-            border-color: var(--primary);
-        }
-
-        .map-region.active-region {
-            background: rgba(37, 99, 235, 0.18);
-            border-color: var(--primary);
-        }
-
-        .map-region.selected-map-region {
-            background: var(--primary);
-            color: white;
-        }
-
-        .map-region-count {
-            font-weight: bold;
-            font-size: 22px;
-            color: var(--success);
-        }
-
-        .selected-map-region .map-region-count {
-            color: white;
+            overflow: hidden;
         }
 
         .region-header {
@@ -473,6 +441,11 @@
             color: var(--primary);
         }
 
+        .leaflet-popup-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
         @media (max-width: 1100px) {
             .layout {
                 grid-template-columns: 1fr;
@@ -506,8 +479,8 @@
                 margin: 60px auto;
             }
 
-            .ukraine-map {
-                grid-template-columns: repeat(3, 1fr);
+            #realUkraineMap {
+                height: 520px;
             }
         }
     </style>
@@ -520,8 +493,10 @@
     <input id="loginUsername" placeholder="Введіть ім'я">
 
     <div class="detected-region-box">
-        <div>Ваша область буде визначена автоматично за IP.</div>
+        <div>Ваша область і координати будуть визначені автоматично за IP.</div>
         <div><b>Область:</b> <span id="detectedRegion">визначається...</span></div>
+        <div><b>Місто:</b> <span id="detectedCity">визначається...</span></div>
+        <div><b>Координати:</b> <span id="detectedCoords">визначаються...</span></div>
     </div>
 
     <button onclick="login()">Увійти</button>
@@ -536,6 +511,8 @@
                 <h3>Користувач</h3>
                 <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
                 <p><b>Область:</b> <span id="currentRegion"></span></p>
+                <p><b>Місто:</b> <span id="currentCity"></span></p>
+                <p><b>Координати:</b> <span id="currentCoords"></span></p>
                 <p><b>Статус:</b> <span id="currentStatus">🟢 Онлайн</span></p>
             </div>
 
@@ -557,6 +534,7 @@
 
                     <div class="settings-status">
                         <div>Звук: <b id="soundStatus">Увімкнено</b></div>
+                        <div>Карта: OpenStreetMap + Leaflet</div>
                     </div>
                 </div>
             </div>
@@ -593,7 +571,7 @@
 
         <div class="panel stats-panel">
             <div class="map-box">
-                <button class="open-map-button" onclick="openMapModal()">🗺️ Відкрити карту України</button>
+                <button class="open-map-button" onclick="openMapModal()">🗺️ Відкрити справжню карту</button>
             </div>
 
             <h3>Користувачі онлайн по областях</h3>
@@ -605,15 +583,16 @@
 <div id="mapModal" class="map-modal">
     <div class="map-modal-content">
         <div class="map-modal-header">
-            <h2>🗺️ Карта України онлайн</h2>
+            <h2>🗺️ Географічна активність користувачів</h2>
             <button onclick="closeMapModal()">×</button>
         </div>
 
         <p class="map-modal-info">
-            Натисніть на область, щоб перейти до її регіонального чату. Число показує кількість онлайн-користувачів.
+            На карті показано онлайн-користувачів за координатами, отриманими через IP-геолокацію.
+            Натисни на маркер, щоб побачити користувача, область, місто, статус і координати.
         </p>
 
-        <div id="ukraineMap" class="ukraine-map"></div>
+        <div id="realUkraineMap"></div>
     </div>
 </div>
 
@@ -623,7 +602,15 @@
 
     let currentUsername = "";
     let currentRegion = "Запорізька область";
+    let currentCity = "Запоріжжя";
+    let currentLatitude = 47.8388;
+    let currentLongitude = 35.1396;
+
     let detectedRegion = "";
+    let detectedCity = "";
+    let detectedLatitude = 47.8388;
+    let detectedLongitude = 35.1396;
+
     let selectedRegion = localStorage.getItem("selectedRegion") || "";
     let currentStatus = "ONLINE";
     let connected = false;
@@ -636,6 +623,8 @@
     let typingSendTimeout = null;
 
     let mapStats = {};
+    let realMap = null;
+    let realMapMarkersLayer = null;
 
     let messagesStore = {
         GENERAL: [],
@@ -671,6 +660,33 @@
         "Чернігівська область"
     ];
 
+    const regionCenters = {
+        "Вінницька область": [49.2328, 28.4810],
+        "Волинська область": [50.7472, 25.3254],
+        "Дніпропетровська область": [48.4647, 35.0462],
+        "Донецька область": [48.0159, 37.8029],
+        "Житомирська область": [50.2547, 28.6587],
+        "Закарпатська область": [48.6208, 22.2879],
+        "Запорізька область": [47.8388, 35.1396],
+        "Івано-Франківська область": [48.9226, 24.7111],
+        "Київська область": [50.4501, 30.5234],
+        "Кіровоградська область": [48.5079, 32.2623],
+        "Луганська область": [48.5740, 39.3078],
+        "Львівська область": [49.8397, 24.0297],
+        "Миколаївська область": [46.9750, 31.9946],
+        "Одеська область": [46.4825, 30.7233],
+        "Полтавська область": [49.5883, 34.5514],
+        "Рівненська область": [50.6199, 26.2516],
+        "Сумська область": [50.9077, 34.7981],
+        "Тернопільська область": [49.5535, 25.5948],
+        "Харківська область": [49.9935, 36.2304],
+        "Херсонська область": [46.6354, 32.6169],
+        "Хмельницька область": [49.4229, 26.9871],
+        "Черкаська область": [49.4444, 32.0598],
+        "Чернівецька область": [48.2915, 25.9403],
+        "Чернігівська область": [51.4982, 31.2893]
+    };
+
     function createRegionSelect() {
         let select = document.getElementById("regionSelect");
         select.innerHTML = "";
@@ -683,86 +699,96 @@
         });
     }
 
-    function createUkraineMap() {
-        let map = document.getElementById("ukraineMap");
-        map.innerHTML = "";
-
-        regions.forEach(region => {
-            let div = document.createElement("div");
-            div.className = "map-region";
-            div.dataset.region = region;
-            div.title = region + ": 0 онлайн";
-
-            div.onclick = function () {
-                selectMapRegion(region);
-            };
-
-            div.innerHTML = `
-                <span>${shortRegionName(region)}</span>
-                <span class="map-region-count">0</span>
-            `;
-
-            map.appendChild(div);
-        });
-    }
-
-    function shortRegionName(region) {
-        return region
-            .replace(" область", "")
-            .replace("Івано-Франківська", "Ів.-Франківська")
-            .replace("Дніпропетровська", "Дніпро")
-            .replace("Кіровоградська", "Кіровоград")
-            .replace("Хмельницька", "Хмельн.");
+    function getRegionCenter(region) {
+        return regionCenters[region] || [47.8388, 35.1396];
     }
 
     function openMapModal() {
         document.getElementById("mapModal").classList.add("show");
+
+        setTimeout(function () {
+            initRealMap();
+            updateRealMapMarkers(mapStats);
+            realMap.invalidateSize();
+        }, 100);
     }
 
     function closeMapModal() {
         document.getElementById("mapModal").classList.remove("show");
     }
 
-    function updateMapStats(data) {
-        mapStats = data || {};
+    function initRealMap() {
+        if (realMap !== null) return;
 
-        document.querySelectorAll(".map-region").forEach(regionDiv => {
-            let region = regionDiv.dataset.region;
-            let users = mapStats[region] || [];
-            let count = users.length;
+        realMap = L.map("realUkraineMap").setView([48.7, 31.2], 6);
 
-            regionDiv.querySelector(".map-region-count").innerText = count;
-            regionDiv.title = region + ": " + count + " онлайн";
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 18,
+            attribution: "&copy; OpenStreetMap"
+        }).addTo(realMap);
 
-            regionDiv.classList.toggle("active-region", count > 0);
-            regionDiv.classList.toggle("selected-map-region", region === currentRegion);
-        });
+        realMapMarkersLayer = L.layerGroup().addTo(realMap);
     }
 
-    function selectMapRegion(region) {
-        selectedRegion = region;
-        currentRegion = region;
+    function updateRealMapMarkers(data) {
+        if (realMap === null || realMapMarkersLayer === null) return;
 
-        localStorage.setItem("selectedRegion", region);
+        realMapMarkersLayer.clearLayers();
 
-        document.getElementById("currentRegion").innerText = currentRegion;
-        document.getElementById("detectedRegion").innerText = currentRegion;
-        document.getElementById("regionSelect").value = currentRegion;
+        let totalUsers = 0;
 
-        updateMapStats(mapStats);
-        loadHistory();
-        switchRoom("REGION");
-        closeMapModal();
+        regions.forEach(region => {
+            let users = data[region] || [];
+            totalUsers += users.length;
 
-        if (connected && stompClient && currentUsername !== "") {
-            stompClient.send("/app/status", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                content: "",
-                type: "STATUS",
-                status: currentStatus
-            }));
+            users.forEach(user => {
+                let lat = user.latitude || getRegionCenter(region)[0];
+                let lon = user.longitude || getRegionCenter(region)[1];
+
+                let marker = L.marker([lat, lon]);
+
+                marker.bindPopup(`
+                    <b>${escapeHtml(user.username)}</b><br>
+                    Статус: ${getStatusText(user.status)}<br>
+                    Область: ${escapeHtml(region)}<br>
+                    Місто: ${escapeHtml(user.city || "Невідоме місто")}<br>
+                    Координати: ${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}<br>
+                    <button onclick="startPrivateMessage('${escapeJs(user.username)}'); closeMapModal();">
+                        Написати приватно
+                    </button>
+                `);
+
+                marker.addTo(realMapMarkersLayer);
+            });
+        });
+
+        if (totalUsers === 0) {
+            L.marker([currentLatitude, currentLongitude])
+                .bindPopup("Поки що на карті немає інших онлайн-користувачів.")
+                .addTo(realMapMarkersLayer);
         }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return String(text)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function escapeJs(text) {
+        if (!text) return "";
+        return String(text).replaceAll("'", "\\'");
+    }
+
+    function updateUserInfoOnPage() {
+        document.getElementById("currentRegion").innerText = currentRegion;
+        document.getElementById("currentCity").innerText = currentCity;
+        document.getElementById("currentCoords").innerText =
+            Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
     }
 
     function detectRegion() {
@@ -770,19 +796,45 @@
             .then(response => response.json())
             .then(data => {
                 detectedRegion = data.region || "Запорізька область";
+                detectedCity = data.city || "Запоріжжя";
+                detectedLatitude = data.latitude || 47.8388;
+                detectedLongitude = data.longitude || 35.1396;
+
                 currentRegion = selectedRegion !== "" ? selectedRegion : detectedRegion;
+                currentCity = detectedCity;
+
+                if (selectedRegion !== "") {
+                    let center = getRegionCenter(selectedRegion);
+                    currentLatitude = center[0];
+                    currentLongitude = center[1];
+                } else {
+                    currentLatitude = detectedLatitude;
+                    currentLongitude = detectedLongitude;
+                }
 
                 document.getElementById("detectedRegion").innerText = currentRegion;
+                document.getElementById("detectedCity").innerText = currentCity;
+                document.getElementById("detectedCoords").innerText =
+                    Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
+
                 document.getElementById("regionSelect").value = currentRegion;
-                updateMapStats(mapStats);
+                updateUserInfoOnPage();
             })
             .catch(() => {
-                detectedRegion = "Запорізька область";
-                currentRegion = selectedRegion !== "" ? selectedRegion : detectedRegion;
+                currentRegion = selectedRegion !== "" ? selectedRegion : "Запорізька область";
+                currentCity = "Запоріжжя";
+
+                let center = getRegionCenter(currentRegion);
+                currentLatitude = center[0];
+                currentLongitude = center[1];
 
                 document.getElementById("detectedRegion").innerText = currentRegion;
+                document.getElementById("detectedCity").innerText = currentCity;
+                document.getElementById("detectedCoords").innerText =
+                    Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
+
                 document.getElementById("regionSelect").value = currentRegion;
-                updateMapStats(mapStats);
+                updateUserInfoOnPage();
             });
     }
 
@@ -794,6 +846,12 @@
     function toggleTheme() {
         document.body.classList.toggle("dark");
         localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+
+        if (realMap !== null) {
+            setTimeout(function () {
+                realMap.invalidateSize();
+            }, 100);
+        }
     }
 
     function changeUsername() {
@@ -820,6 +878,9 @@
             stompClient.send("/app/leave", {}, JSON.stringify({
                 username: oldName,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: "",
                 type: "LEAVE"
             }));
@@ -827,6 +888,9 @@
             stompClient.send("/app/join", {}, JSON.stringify({
                 username: currentUsername,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: "",
                 type: "JOIN",
                 status: currentStatus
@@ -850,6 +914,9 @@
             stompClient.send("/app/status", {}, JSON.stringify({
                 username: currentUsername,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: "",
                 type: "STATUS",
                 status: currentStatus
@@ -859,7 +926,34 @@
 
     function changeRegion() {
         selectedRegion = document.getElementById("regionSelect").value;
-        selectMapRegion(selectedRegion);
+        currentRegion = selectedRegion;
+
+        let center = getRegionCenter(currentRegion);
+        currentLatitude = center[0];
+        currentLongitude = center[1];
+
+        localStorage.setItem("selectedRegion", selectedRegion);
+
+        document.getElementById("detectedRegion").innerText = currentRegion;
+        document.getElementById("detectedCoords").innerText =
+            Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
+
+        updateUserInfoOnPage();
+        loadHistory();
+
+        if (connected && stompClient && currentUsername !== "") {
+            stompClient.send("/app/status", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
+                content: "",
+                type: "STATUS",
+                status: currentStatus
+            }));
+        }
+
         alert("Область змінено на: " + currentRegion);
     }
 
@@ -962,8 +1056,9 @@
 
             stompClient.subscribe("/topic/stats", function (msg) {
                 let data = JSON.parse(msg.body);
+                mapStats = data;
                 renderStats(data);
-                updateMapStats(data);
+                updateRealMapMarkers(data);
             });
 
             stompClient.subscribe("/topic/typing", function (msg) {
@@ -1014,13 +1109,11 @@
         }
 
         document.getElementById("currentUsername").innerText = currentUsername;
-        document.getElementById("currentRegion").innerText = currentRegion;
         document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
+        updateUserInfoOnPage();
 
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("chatPage").style.display = "block";
-
-        updateMapStats(mapStats);
 
         if (!connected) {
             connect(sendJoinMessage);
@@ -1035,6 +1128,9 @@
         stompClient.send("/app/join", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
             content: "",
             type: "JOIN",
             status: currentStatus
@@ -1138,6 +1234,9 @@
                 username: currentUsername,
                 recipient: privateRecipient,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: content,
                 type: "PRIVATE"
             }));
@@ -1145,6 +1244,9 @@
             stompClient.send("/app/room", {}, JSON.stringify({
                 username: currentUsername,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: content,
                 type: currentRoom
             }));
@@ -1172,6 +1274,9 @@
         stompClient.send("/app/typing", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
             content: currentRoom,
             type: "TYPING",
             recipient: privateRecipient
@@ -1224,6 +1329,7 @@
             let textForSearch = (
                 (message.username || "") + " " +
                 (message.region || "") + " " +
+                (message.city || "") + " " +
                 (message.content || "") + " " +
                 (message.recipient || "")
             ).toLowerCase();
@@ -1276,6 +1382,9 @@
             stompClient.send("/app/leave", {}, JSON.stringify({
                 username: currentUsername,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: "",
                 type: "LEAVE"
             }));
@@ -1339,9 +1448,10 @@
                 users.forEach(user => {
                     let username = user.username;
                     let status = user.status;
+                    let city = user.city || "Невідоме місто";
 
                     let userDiv = document.createElement("div");
-                    userDiv.innerText = getStatusText(status) + " " + username;
+                    userDiv.innerText = getStatusText(status) + " " + username + " • " + city;
 
                     userDiv.onclick = function () {
                         startPrivateMessage(username);
@@ -1378,6 +1488,9 @@
             stompClient.send("/app/leave", {}, JSON.stringify({
                 username: currentUsername,
                 region: currentRegion,
+                city: currentCity,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
                 content: "",
                 type: "LEAVE"
             }));
@@ -1385,7 +1498,6 @@
     });
 
     createRegionSelect();
-    createUkraineMap();
     loadSettings();
     detectRegion();
 </script>

@@ -16,13 +16,16 @@ public class GeoLocationController {
     }
 
     @GetMapping("/api/geo/region")
-    public Map<String, String> detectRegion(HttpServletRequest request) {
+    public Map<String, Object> detectRegion(HttpServletRequest request) {
         String ip = getClientIp(request);
-        String region = geoLocationService.detectRegionByIp(ip);
+        GeoLocationService.GeoInfo geoInfo = geoLocationService.detectGeoByIp(ip);
 
         return Map.of(
                 "ip", ip,
-                "region", region
+                "region", geoInfo.getRegion(),
+                "city", geoInfo.getCity(),
+                "latitude", geoInfo.getLatitude(),
+                "longitude", geoInfo.getLongitude()
         );
     }
 

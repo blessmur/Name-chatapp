@@ -23,20 +23,29 @@ public class ChatController {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
 
-    private final Map<String, String> onlineUsers = new ConcurrentHashMap<>();
-    private final Map<String, String> userStatuses = new ConcurrentHashMap<>();
+    private final Map<String, OnlineUser> onlineUsers = new ConcurrentHashMap<>();
 
     @MessageMapping("/join")
     public void join(ChatMessage message) {
-        onlineUsers.put(message.getUsername(), message.getRegion());
-        userStatuses.put(message.getUsername(), message.getStatus() != null ? message.getStatus() : "ONLINE");
+        String username = message.getUsername();
+        String region = message.getRegion();
+        String status = message.getStatus() != null ? message.getStatus() : "ONLINE";
+        String city = message.getCity() != null ? message.getCity() : "Невідоме місто";
+        Double latitude = message.getLatitude() != null ? message.getLatitude() : 47.8388;
+        Double longitude = message.getLongitude() != null ? message.getLongitude() : 35.1396;
+
+        onlineUsers.put(username, new OnlineUser(username, region, city, status, latitude, longitude));
 
         ChatMessage joinMessage = new ChatMessage(
                 "System",
-                message.getUsername() + " приєднався до чату з області: " + message.getRegion(),
-                message.getRegion(),
+                username + " приєднався до чату з області: " + region,
+                region,
                 "JOIN"
         );
+
+        joinMessage.setCity(city);
+        joinMessage.setLatitude(latitude);
+        joinMessage.setLongitude(longitude);
 
         chatMessageRepository.save(joinMessage);
         messagingTemplate.convertAndSend("/topic/messages", joinMessage);
@@ -46,7 +55,6 @@ public class ChatController {
     @MessageMapping("/leave")
     public void leave(ChatMessage message) {
         onlineUsers.remove(message.getUsername());
-        userStatuses.remove(message.getUsername());
 
         ChatMessage leaveMessage = new ChatMessage(
                 "System",
@@ -54,6 +62,10 @@ public class ChatController {
                 message.getRegion(),
                 "LEAVE"
         );
+
+        leaveMessage.setCity(message.getCity());
+        leaveMessage.setLatitude(message.getLatitude());
+        leaveMessage.setLongitude(message.getLongitude());
 
         chatMessageRepository.save(leaveMessage);
         messagingTemplate.convertAndSend("/topic/messages", leaveMessage);
@@ -77,7 +89,21 @@ public class ChatController {
 
     @MessageMapping("/status")
     public void changeStatus(ChatMessage message) {
-        userStatuses.put(message.getUsername(), message.getStatus());
+        OnlineUser oldUser = onlineUsers.get(message.getUsername());
+
+        if (oldUser != null) {
+            String region = message.getRegion() != null ? message.getRegion() : oldUser.getRegion();
+            String city = message.getCity() != null ? message.getCity() : oldUser.getCity();
+            String status = message.getStatus() != null ? message.getStatus() : oldUser.getStatus();
+            Double latitude = message.getLatitude() != null ? message.getLatitude() : oldUser.getLatitude();
+            Double longitude = message.getLongitude() != null ? message.getLongitude() : oldUser.getLongitude();
+
+            onlineUsers.put(
+                    message.getUsername(),
+                    new OnlineUser(message.getUsername(), region, city, status, latitude, longitude)
+            );
+        }
+
         sendStats();
     }
 
@@ -137,10 +163,9 @@ public class ChatController {
             stats.put(region, new ArrayList<>());
         }
 
-        onlineUsers.forEach((username, region) -> {
-            if (stats.containsKey(region)) {
-                String status = userStatuses.getOrDefault(username, "ONLINE");
-                stats.get(region).add(new OnlineUser(username, status));
+        onlineUsers.forEach((username, user) -> {
+            if (stats.containsKey(user.getRegion())) {
+                stats.get(user.getRegion()).add(user);
             }
         });
 
@@ -149,19 +174,43 @@ public class ChatController {
 
     public static class OnlineUser {
         private String username;
+        private String region;
+        private String city;
         private String status;
+        private Double latitude;
+        private Double longitude;
 
-        public OnlineUser(String username, String status) {
+        public OnlineUser(String username, String region, String city, String status, Double latitude, Double longitude) {
             this.username = username;
+            this.region = region;
+            this.city = city;
             this.status = status;
+            this.latitude = latitude;
+            this.longitude = longitude;
         }
 
         public String getUsername() {
             return username;
         }
 
+        public String getRegion() {
+            return region;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
         public String getStatus() {
             return status;
+        }
+
+        public Double getLatitude() {
+            return latitude;
+        }
+
+        public Double getLongitude() {
+            return longitude;
         }
     }
 }

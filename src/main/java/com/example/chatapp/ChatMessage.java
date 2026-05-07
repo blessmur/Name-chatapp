@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,6 +20,12 @@ public class ChatMessage {
     private String content;
 
     private String region;
+
+    private String city;
+
+    private Double latitude;
+
+    private Double longitude;
 
     private String type;
 
@@ -70,6 +77,18 @@ public class ChatMessage {
         return region;
     }
 
+    public String getCity() {
+        return city;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
     public String getType() {
         return type;
     }
@@ -100,6 +119,18 @@ public class ChatMessage {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public void setType(String type) {
