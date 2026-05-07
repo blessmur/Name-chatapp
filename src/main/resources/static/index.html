@@ -22,6 +22,7 @@
             --system-text: #1e40af;
             --primary: #2563eb;
             --danger: #dc2626;
+            --success: #16a34a;
             --shadow: rgba(0,0,0,0.08);
         }
 
@@ -39,6 +40,7 @@
             --system-text: #dbeafe;
             --primary: #60a5fa;
             --danger: #ef4444;
+            --success: #22c55e;
             --shadow: rgba(0,0,0,0.35);
         }
 
@@ -52,7 +54,6 @@
         h1 {
             text-align: center;
             margin: 25px 0;
-            color: var(--text);
         }
 
         .login-page {
@@ -85,7 +86,8 @@
 
         .login-page button,
         .message-box button,
-        .settings-button {
+        .settings-button,
+        .map-button {
             background: var(--primary);
             color: white;
             border: none;
@@ -106,10 +108,9 @@
 
         .layout {
             display: grid;
-            grid-template-columns: 260px 1fr 340px;
+            grid-template-columns: 260px 1fr 380px;
             gap: 20px;
             padding: 0 30px 30px;
-            align-items: stretch;
         }
 
         .panel {
@@ -119,21 +120,24 @@
             box-shadow: 0 4px 15px var(--shadow);
         }
 
+        .user-panel,
+        .chat-panel,
+        .stats-panel {
+            height: 660px;
+        }
+
         .user-panel {
-            height: 600px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
         .chat-panel {
-            height: 600px;
             display: flex;
             flex-direction: column;
         }
 
         .stats-panel {
-            height: 600px;
             overflow-y: auto;
         }
 
@@ -141,7 +145,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
         }
 
         .logout-button {
@@ -167,7 +170,6 @@
             cursor: pointer;
             background: var(--message-bg);
             color: var(--text);
-            font-size: 14px;
         }
 
         .tabs button.active {
@@ -214,7 +216,6 @@
             margin-bottom: 10px;
             padding: 9px 11px;
             border-radius: 12px;
-            color: var(--text);
             max-width: 75%;
             clear: both;
             word-wrap: break-word;
@@ -292,7 +293,6 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
         }
 
         .settings-menu {
@@ -304,7 +304,6 @@
             width: 100%;
             padding: 10px;
             margin-top: 8px;
-            font-size: 14px;
         }
 
         .settings-menu select {
@@ -317,7 +316,84 @@
             margin-top: 10px;
             font-size: 13px;
             color: var(--muted);
-            line-height: 1.5;
+        }
+
+        .map-box {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: var(--chat-bg);
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .map-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .map-button {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .ukraine-map {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            transition: 0.25s;
+        }
+
+        .ukraine-map.big {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 9px;
+        }
+
+        .map-region {
+            min-height: 48px;
+            padding: 6px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--panel-bg);
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: 0.2s;
+        }
+
+        .map-region:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        .map-region.active-region {
+            background: rgba(37, 99, 235, 0.18);
+            border-color: var(--primary);
+        }
+
+        .map-region.selected-map-region {
+            background: var(--primary);
+            color: white;
+        }
+
+        .map-region-count {
+            font-weight: bold;
+            font-size: 15px;
+            color: var(--success);
+        }
+
+        .selected-map-region .map-region-count {
+            color: white;
         }
 
         .region-header {
@@ -357,12 +433,7 @@
             color: var(--primary);
         }
 
-        @media (max-width: 900px) {
-            h1 {
-                font-size: 24px;
-                margin: 18px 0;
-            }
-
+        @media (max-width: 1100px) {
             .layout {
                 grid-template-columns: 1fr;
                 padding: 0 15px 20px;
@@ -382,10 +453,6 @@
                 flex-direction: column;
             }
 
-            .message-box button {
-                width: 100%;
-            }
-
             .tabs {
                 flex-direction: column;
             }
@@ -397,6 +464,10 @@
             .login-page {
                 width: calc(100% - 40px);
                 margin: 60px auto;
+            }
+
+            .ukraine-map {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
@@ -441,32 +512,8 @@
                         <option value="AWAY">🟡 Відійшов</option>
                         <option value="BUSY">🔴 Зайнятий</option>
                     </select>
-					<select id="regionSelect" onchange="changeRegion()">
-					    <option value="Вінницька область">Вінницька область</option>
-					    <option value="Волинська область">Волинська область</option>
-					    <option value="Дніпропетровська область">Дніпропетровська область</option>
-					    <option value="Донецька область">Донецька область</option>
-					    <option value="Житомирська область">Житомирська область</option>
-					    <option value="Закарпатська область">Закарпатська область</option>
-					    <option value="Запорізька область">Запорізька область</option>
-					    <option value="Івано-Франківська область">Івано-Франківська область</option>
-					    <option value="Київська область">Київська область</option>
-					    <option value="Кіровоградська область">Кіровоградська область</option>
-					    <option value="Луганська область">Луганська область</option>
-					    <option value="Львівська область">Львівська область</option>
-					    <option value="Миколаївська область">Миколаївська область</option>
-					    <option value="Одеська область">Одеська область</option>
-					    <option value="Полтавська область">Полтавська область</option>
-					    <option value="Рівненська область">Рівненська область</option>
-					    <option value="Сумська область">Сумська область</option>
-					    <option value="Тернопільська область">Тернопільська область</option>
-					    <option value="Харківська область">Харківська область</option>
-					    <option value="Херсонська область">Херсонська область</option>
-					    <option value="Хмельницька область">Хмельницька область</option>
-					    <option value="Черкаська область">Черкаська область</option>
-					    <option value="Чернівецька область">Чернівецька область</option>
-					    <option value="Чернігівська область">Чернігівська область</option>
-					</select>
+
+                    <select id="regionSelect" onchange="changeRegion()"></select>
 
                     <div class="settings-status">
                         <div>Звук: <b id="soundStatus">Увімкнено</b></div>
@@ -505,6 +552,15 @@
         </div>
 
         <div class="panel stats-panel">
+            <div class="map-box">
+                <div class="map-header">
+                    <h3>🗺️ Карта України онлайн</h3>
+                    <button class="map-button" onclick="toggleMapSize()">Збільшити</button>
+                </div>
+
+                <div id="ukraineMap" class="ukraine-map"></div>
+            </div>
+
             <h3>Користувачі онлайн по областях</h3>
             <div id="stats"></div>
         </div>
@@ -517,8 +573,8 @@
 
     let currentUsername = "";
     let currentRegion = "Запорізька область";
-	let detectedRegion = "";
-	let selectedRegion = localStorage.getItem("selectedRegion") || "";
+    let detectedRegion = "";
+    let selectedRegion = localStorage.getItem("selectedRegion") || "";
     let currentStatus = "ONLINE";
     let connected = false;
 
@@ -528,6 +584,8 @@
 
     let typingTimeout = null;
     let typingSendTimeout = null;
+
+    let mapStats = {};
 
     let messagesStore = {
         GENERAL: [],
@@ -563,32 +621,124 @@
         "Чернігівська область"
     ];
 
-	function detectRegion() {
-	    fetch("/api/geo/region")
-	        .then(response => response.json())
-	        .then(data => {
-	            detectedRegion = data.region || "Запорізька область";
+    function createRegionSelect() {
+        let select = document.getElementById("regionSelect");
+        select.innerHTML = "";
 
-	            if (selectedRegion !== "") {
-	                currentRegion = selectedRegion;
-	            } else {
-	                currentRegion = detectedRegion;
-	            }
+        regions.forEach(region => {
+            let option = document.createElement("option");
+            option.value = region;
+            option.innerText = region;
+            select.appendChild(option);
+        });
+    }
 
-	            document.getElementById("detectedRegion").innerText = currentRegion;
-	        })
-	        .catch(() => {
-	            detectedRegion = "Запорізька область";
+    function createUkraineMap() {
+        let map = document.getElementById("ukraineMap");
+        map.innerHTML = "";
 
-	            if (selectedRegion !== "") {
-	                currentRegion = selectedRegion;
-	            } else {
-	                currentRegion = detectedRegion;
-	            }
+        regions.forEach(region => {
+            let div = document.createElement("div");
+            div.className = "map-region";
+            div.dataset.region = region;
+            div.title = region + ": 0 онлайн";
 
-	            document.getElementById("detectedRegion").innerText = currentRegion;
-	        });
-	}
+            div.onclick = function () {
+                selectMapRegion(region);
+            };
+
+            div.innerHTML = `
+                <span>${shortRegionName(region)}</span>
+                <span class="map-region-count">0</span>
+            `;
+
+            map.appendChild(div);
+        });
+    }
+
+    function shortRegionName(region) {
+        return region
+            .replace(" область", "")
+            .replace("Івано-Франківська", "Ів.-Франківська")
+            .replace("Дніпропетровська", "Дніпро")
+            .replace("Кіровоградська", "Кіровоград")
+            .replace("Хмельницька", "Хмельн.");
+    }
+
+    function updateMapStats(data) {
+        mapStats = data || {};
+
+        document.querySelectorAll(".map-region").forEach(regionDiv => {
+            let region = regionDiv.dataset.region;
+            let users = mapStats[region] || [];
+            let count = users.length;
+
+            regionDiv.querySelector(".map-region-count").innerText = count;
+            regionDiv.title = region + ": " + count + " онлайн";
+
+            regionDiv.classList.toggle("active-region", count > 0);
+            regionDiv.classList.toggle("selected-map-region", region === currentRegion);
+        });
+    }
+
+    function selectMapRegion(region) {
+        selectedRegion = region;
+        currentRegion = region;
+
+        localStorage.setItem("selectedRegion", region);
+
+        document.getElementById("currentRegion").innerText = currentRegion;
+        document.getElementById("detectedRegion").innerText = currentRegion;
+        document.getElementById("regionSelect").value = currentRegion;
+
+        updateMapStats(mapStats);
+        loadHistory();
+        switchRoom("REGION");
+
+        if (connected && stompClient && currentUsername !== "") {
+            stompClient.send("/app/status", {}, JSON.stringify({
+                username: currentUsername,
+                region: currentRegion,
+                content: "",
+                type: "STATUS",
+                status: currentStatus
+            }));
+        }
+    }
+
+    function toggleMapSize() {
+        let map = document.getElementById("ukraineMap");
+        let button = document.querySelector(".map-button");
+
+        map.classList.toggle("big");
+
+        if (map.classList.contains("big")) {
+            button.innerText = "Зменшити";
+        } else {
+            button.innerText = "Збільшити";
+        }
+    }
+
+    function detectRegion() {
+        fetch("/api/geo/region")
+            .then(response => response.json())
+            .then(data => {
+                detectedRegion = data.region || "Запорізька область";
+                currentRegion = selectedRegion !== "" ? selectedRegion : detectedRegion;
+
+                document.getElementById("detectedRegion").innerText = currentRegion;
+                document.getElementById("regionSelect").value = currentRegion;
+                updateMapStats(mapStats);
+            })
+            .catch(() => {
+                detectedRegion = "Запорізька область";
+                currentRegion = selectedRegion !== "" ? selectedRegion : detectedRegion;
+
+                document.getElementById("detectedRegion").innerText = currentRegion;
+                document.getElementById("regionSelect").value = currentRegion;
+                updateMapStats(mapStats);
+            });
+    }
 
     function toggleSettingsMenu() {
         let menu = document.getElementById("settingsMenu");
@@ -661,30 +811,12 @@
         }
     }
 
-	function changeRegion() {
-	    selectedRegion = document.getElementById("regionSelect").value;
-	    currentRegion = selectedRegion;
+    function changeRegion() {
+        selectedRegion = document.getElementById("regionSelect").value;
+        selectMapRegion(selectedRegion);
+        alert("Область змінено на: " + currentRegion);
+    }
 
-	    localStorage.setItem("selectedRegion", selectedRegion);
-
-	    document.getElementById("currentRegion").innerText = currentRegion;
-	    document.getElementById("detectedRegion").innerText = currentRegion;
-
-	    loadHistory();
-
-	    if (connected && stompClient && currentUsername !== "") {
-	        stompClient.send("/app/status", {}, JSON.stringify({
-	            username: currentUsername,
-	            region: currentRegion,
-	            content: "",
-	            type: "STATUS",
-	            status: currentStatus
-	        }));
-	    }
-
-	    alert("Область змінено на: " + currentRegion);
-	}
-	
     function getStatusText(status) {
         if (status === "AWAY") return "🟡 Відійшов";
         if (status === "BUSY") return "🔴 Зайнятий";
@@ -706,17 +838,12 @@
         document.getElementById("statusSelect").value = currentStatus;
         document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
 
-        updateSettingsStatus();
-		if (selectedRegion !== "") {
-		    currentRegion = selectedRegion;
-		}
+        if (selectedRegion !== "") {
+            currentRegion = selectedRegion;
+        }
 
-		setTimeout(function () {
-		    let regionSelect = document.getElementById("regionSelect");
-		    if (regionSelect) {
-		        regionSelect.value = currentRegion;
-		    }
-		}, 100);
+        document.getElementById("regionSelect").value = currentRegion;
+        updateSettingsStatus();
     }
 
     function getCurrentTime() {
@@ -788,7 +915,9 @@
             });
 
             stompClient.subscribe("/topic/stats", function (msg) {
-                renderStats(JSON.parse(msg.body));
+                let data = JSON.parse(msg.body);
+                renderStats(data);
+                updateMapStats(data);
             });
 
             stompClient.subscribe("/topic/typing", function (msg) {
@@ -844,6 +973,8 @@
 
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("chatPage").style.display = "block";
+
+        updateMapStats(mapStats);
 
         if (!connected) {
             connect(sendJoinMessage);
@@ -1007,9 +1138,7 @@
 
     function showTyping(message) {
         if (message.username === currentUsername) return;
-
         if (message.content !== currentRoom) return;
-
         if (currentRoom === "REGION" && message.region !== currentRegion) return;
 
         if (currentRoom === "PRIVATE") {
@@ -1053,9 +1182,7 @@
                 (message.recipient || "")
             ).toLowerCase();
 
-            if (!textForSearch.includes(searchText)) {
-                return;
-            }
+            if (!textForSearch.includes(searchText)) return;
 
             appendMessageToList(message);
         });
@@ -1211,6 +1338,8 @@
         }
     });
 
+    createRegionSelect();
+    createUkraineMap();
     loadSettings();
     detectRegion();
 </script>
