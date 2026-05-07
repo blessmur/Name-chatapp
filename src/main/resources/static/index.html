@@ -937,7 +937,7 @@ function authSubmit() {
             }
 
             currentUsername = data.username;
-            currentRegion = data.region || currentRegion;
+            currentRegion = normalizeRegion(data.region || currentRegion);
             currentCity = data.city || currentCity;
             currentLatitude = data.latitude || currentLatitude;
             currentLongitude = data.longitude || currentLongitude;
@@ -978,14 +978,103 @@ function normalizeRegion(region) {
 
     region = region.toLowerCase();
 
-    if (region.includes("zap")) return "Запорізька область";
-    if (region.includes("lviv")) return "Львівська область";
-    if (region.includes("kyiv")) return "Київська область";
-    if (region.includes("khark")) return "Харківська область";
-    if (region.includes("odes")) return "Одеська область";
-    if (region.includes("dnip")) return "Дніпропетровська область";
+    if (region.includes("він") || region.includes("vinn")) {
+        return "Вінницька область";
+    }
 
-    return region;
+    if (region.includes("вол")) {
+        return "Волинська область";
+    }
+
+    if (region.includes("дніпр") || region.includes("днепр") || region.includes("dnip")) {
+        return "Дніпропетровська область";
+    }
+
+    if (region.includes("дон")) {
+        return "Донецька область";
+    }
+
+    if (region.includes("жит")) {
+        return "Житомирська область";
+    }
+
+    if (region.includes("закар") || region.includes("uzh")) {
+        return "Закарпатська область";
+    }
+
+    if (region.includes("запор") || region.includes("zap")) {
+        return "Запорізька область";
+    }
+
+    if (region.includes("івано") || region.includes("frank")) {
+        return "Івано-Франківська область";
+    }
+
+    if (region.includes("київ") || region.includes("киев") || region.includes("kyiv") || region.includes("kiev")) {
+        return "Київська область";
+    }
+
+    if (region.includes("кіров") || region.includes("kropyv")) {
+        return "Кіровоградська область";
+    }
+
+    if (region.includes("луг") || region.includes("luh")) {
+        return "Луганська область";
+    }
+
+    if (region.includes("льв") || region.includes("lviv")) {
+        return "Львівська область";
+    }
+
+    if (region.includes("микол") || region.includes("mykol")) {
+        return "Миколаївська область";
+    }
+
+    if (region.includes("одес") || region.includes("odes")) {
+        return "Одеська область";
+    }
+
+    if (region.includes("полтав")) {
+        return "Полтавська область";
+    }
+
+    if (region.includes("рівн") || region.includes("rivne")) {
+        return "Рівненська область";
+    }
+
+    if (region.includes("сум")) {
+        return "Сумська область";
+    }
+
+    if (region.includes("терноп")) {
+        return "Тернопільська область";
+    }
+
+    if (region.includes("хар") || region.includes("khark")) {
+        return "Харківська область";
+    }
+
+    if (region.includes("херс")) {
+        return "Херсонська область";
+    }
+
+    if (region.includes("хмель")) {
+        return "Хмельницька область";
+    }
+
+    if (region.includes("черкас")) {
+        return "Черкаська область";
+    }
+
+    if (region.includes("чернів")) {
+        return "Чернівецька область";
+    }
+
+    if (region.includes("черніг")) {
+        return "Чернігівська область";
+    }
+
+    return "Невідома область";
 }
 
 function detectRegion() {
