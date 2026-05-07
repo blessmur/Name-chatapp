@@ -532,7 +532,7 @@
     <input id="loginPassword" type="password" placeholder="Пароль">
 
     <div class="detected-region-box">
-        <div>Область і координати визначаються автоматично за IP.</div>
+        <div>Область, місто і координати визначаються через геолокацію браузера.</div>
         <div><b>Область:</b> <span id="detectedRegion">визначається...</span></div>
         <div><b>Місто:</b> <span id="detectedCity">визначається...</span></div>
         <div><b>Координати:</b> <span id="detectedCoords">визначаються...</span></div>
@@ -862,11 +862,8 @@ function createRegionSelect() {
 }
 
 function getRegionCenter(region) {
-
-    return regionCenters[region]
-        || [47.8388, 35.1396];
+    return regionCenters[region] || [0, 0];
 }
-
 function updateUserInfoOnPage() {
 
     document.getElementById("currentRegion").innerText =
@@ -1070,10 +1067,10 @@ function detectByIP() {
                 data.city || "Невідоме місто";
 
             currentLatitude =
-                data.latitude || 47.8388;
+                data.latitude || 0;
 
             currentLongitude =
-                data.longitude || 35.1396;
+                data.longitude || 0;
 
             document.getElementById("detectedRegion").innerText =
                 currentRegion;
@@ -1276,13 +1273,6 @@ function loadSettings() {
 
     document.getElementById("currentStatus").innerText =
         getStatusText(currentStatus);
-
-    if (selectedRegion !== "") {
-        currentRegion = selectedRegion;
-    }
-
-    document.getElementById("regionSelect").value =
-        currentRegion;
 
     updateSettingsStatus();
 }
