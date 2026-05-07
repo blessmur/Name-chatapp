@@ -32,7 +32,10 @@ public class GeoLocationService {
             connection.setConnectTimeout(3000);
             connection.setReadTimeout(3000);
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream())
+            );
+
             StringBuilder response = new StringBuilder();
             String line;
 
@@ -85,10 +88,10 @@ public class GeoLocationService {
     private GeoInfo defaultGeo() {
         return new GeoInfo(
                 "local",
-                "Запорізька область",
-                "Запоріжжя",
-                47.8388,
-                35.1396
+                "Невідома область",
+                "Невідоме місто",
+                0.0,
+                0.0
         );
     }
 
@@ -119,6 +122,7 @@ public class GeoLocationService {
         }
 
         start += search.length();
+
         int endComma = json.indexOf(",", start);
         int endBrace = json.indexOf("}", start);
 
@@ -168,9 +172,13 @@ public class GeoLocationService {
     }
 
     private String mapToUkrainianRegion(String regionName, String city) {
-        String value = ((regionName == null ? "" : regionName) + " " + (city == null ? "" : city)).toLowerCase();
+        String value =
+                ((regionName == null ? "" : regionName)
+                        + " "
+                        + (city == null ? "" : city)).toLowerCase();
 
         Map<String, String> regions = new LinkedHashMap<>();
+
         regions.put("vinnytsia", "Вінницька область");
         regions.put("volyn", "Волинська область");
         regions.put("dnipropetrovsk", "Дніпропетровська область");
@@ -211,7 +219,7 @@ public class GeoLocationService {
             }
         }
 
-        return "Запорізька область";
+        return "Невідома область";
     }
 
     private RegionCenter getRegionCenter(String region) {
@@ -242,7 +250,7 @@ public class GeoLocationService {
         centers.put("Чернівецька область", new RegionCenter(48.2915, 25.9403));
         centers.put("Чернігівська область", new RegionCenter(51.4982, 31.2893));
 
-        return centers.getOrDefault(region, new RegionCenter(47.8388, 35.1396));
+        return centers.getOrDefault(region, new RegionCenter(0.0, 0.0));
     }
 
     private static class RegionCenter {
