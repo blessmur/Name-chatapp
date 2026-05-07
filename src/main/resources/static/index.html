@@ -60,13 +60,34 @@
         }
 
         .login-page {
-            width: 370px;
-            margin: 100px auto;
+            width: 390px;
+            margin: 80px auto;
             background: var(--panel-bg);
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px var(--shadow);
             text-align: center;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .auth-tabs button {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--message-bg);
+            color: var(--text);
+        }
+
+        .auth-tabs button.active {
+            background: var(--primary);
+            color: white;
         }
 
         .login-page input,
@@ -95,6 +116,13 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+        }
+
+        #authMessage {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 12px;
+            line-height: 1.4;
         }
 
         .detected-region-box {
@@ -490,73 +518,167 @@
 <div id="loginPage" class="login-page">
     <h2>Ukraine Regional Chat</h2>
 
-    <input id="loginUsername" placeholder="Введіть ім'я">
+    <div class="auth-tabs">
+        <button id="loginTab" class="active" onclick="switchAuthMode('login')">
+            Увійти
+        </button>
+
+        <button id="registerTab" onclick="switchAuthMode('register')">
+            Реєстрація
+        </button>
+    </div>
+
+    <input id="loginUsername" placeholder="Ім’я користувача">
+    <input id="loginPassword" type="password" placeholder="Пароль">
 
     <div class="detected-region-box">
-        <div>Ваша область і координати будуть визначені автоматично за IP.</div>
+        <div>Область і координати визначаються автоматично за IP.</div>
         <div><b>Область:</b> <span id="detectedRegion">визначається...</span></div>
         <div><b>Місто:</b> <span id="detectedCity">визначається...</span></div>
         <div><b>Координати:</b> <span id="detectedCoords">визначаються...</span></div>
     </div>
 
-    <button onclick="login()">Увійти</button>
-</div>
+    <button onclick="authSubmit()">Продовжити</button>
 
+    <p id="authMessage">Введіть ім’я та пароль для входу.</p>
+</div>
 <div id="chatPage" style="display: none;">
     <h1>Ukraine Regional Chat</h1>
 
     <div class="layout">
+
         <div class="panel user-panel">
+
             <div>
                 <h3>Користувач</h3>
-                <p><b>Ім'я:</b> <span id="currentUsername"></span></p>
-                <p><b>Область:</b> <span id="currentRegion"></span></p>
-                <p><b>Місто:</b> <span id="currentCity"></span></p>
-                <p><b>Координати:</b> <span id="currentCoords"></span></p>
-                <p><b>Статус:</b> <span id="currentStatus">🟢 Онлайн</span></p>
+
+                <p>
+                    <b>Ім'я:</b>
+                    <span id="currentUsername"></span>
+                </p>
+
+                <p>
+                    <b>Область:</b>
+                    <span id="currentRegion"></span>
+                </p>
+
+                <p>
+                    <b>Місто:</b>
+                    <span id="currentCity"></span>
+                </p>
+
+                <p>
+                    <b>Координати:</b>
+                    <span id="currentCoords"></span>
+                </p>
+
+                <p>
+                    <b>Статус:</b>
+                    <span id="currentStatus">🟢 Онлайн</span>
+                </p>
             </div>
 
             <div class="settings-box">
-                <button class="settings-main-button" onclick="toggleSettingsMenu()">⚙️ Налаштування</button>
 
-                <div id="settingsMenu" class="settings-menu">
-                    <button class="settings-button" onclick="toggleTheme()">🌙 Змінити тему</button>
-                    <button class="settings-button" onclick="changeUsername()">✏️ Змінити ім’я</button>
-                    <button class="settings-button" onclick="toggleSound()">🔔 Звук повідомлень</button>
+                <button class="settings-main-button"
+                        onclick="toggleSettingsMenu()">
+                    ⚙️ Налаштування
+                </button>
 
-                    <select id="statusSelect" onchange="changeStatus()">
-                        <option value="ONLINE">🟢 Онлайн</option>
-                        <option value="AWAY">🟡 Відійшов</option>
-                        <option value="BUSY">🔴 Зайнятий</option>
+                <div id="settingsMenu"
+                     class="settings-menu">
+
+                    <button class="settings-button"
+                            onclick="toggleTheme()">
+                        🌙 Змінити тему
+                    </button>
+
+                    <button class="settings-button"
+                            onclick="changeUsername()">
+                        ✏️ Змінити ім’я
+                    </button>
+
+                    <button class="settings-button"
+                            onclick="toggleSound()">
+                        🔔 Звук повідомлень
+                    </button>
+
+                    <select id="statusSelect"
+                            onchange="changeStatus()">
+
+                        <option value="ONLINE">
+                            🟢 Онлайн
+                        </option>
+
+                        <option value="AWAY">
+                            🟡 Відійшов
+                        </option>
+
+                        <option value="BUSY">
+                            🔴 Зайнятий
+                        </option>
                     </select>
 
-                    <select id="regionSelect" onchange="changeRegion()"></select>
+                    <select id="regionSelect"
+                            onchange="changeRegion()">
+                    </select>
 
                     <div class="settings-status">
-                        <div>Звук: <b id="soundStatus">Увімкнено</b></div>
-                        <div>Карта: OpenStreetMap + Leaflet</div>
+                        <div>
+                            Звук:
+                            <b id="soundStatus">Увімкнено</b>
+                        </div>
+
+                        <div>
+                            Карта: OpenStreetMap + Leaflet
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="panel chat-panel">
+
             <div class="chat-top">
                 <h3>Чат</h3>
-                <button class="logout-button" onclick="logout()">Вийти</button>
+
+                <button class="logout-button"
+                        onclick="logout()">
+                    Вийти
+                </button>
             </div>
 
             <div class="tabs">
-                <button id="tabGENERAL" class="active" onclick="switchRoom('GENERAL')">🌐 Загальний</button>
-                <button id="tabREGION" onclick="switchRoom('REGION')">🏠 Моя область</button>
-                <button id="tabPRIVATE" onclick="switchRoom('PRIVATE')">💬 Приватні</button>
+
+                <button id="tabGENERAL"
+                        class="active"
+                        onclick="switchRoom('GENERAL')">
+                    🌐 Загальний
+                </button>
+
+                <button id="tabREGION"
+                        onclick="switchRoom('REGION')">
+                    🏠 Моя область
+                </button>
+
+                <button id="tabPRIVATE"
+                        onclick="switchRoom('PRIVATE')">
+                    💬 Приватні
+                </button>
             </div>
 
-            <input id="searchInput" class="search-input" placeholder="🔍 Пошук по повідомленнях" oninput="renderCurrentRoom()">
+            <input id="searchInput"
+                   class="search-input"
+                   placeholder="🔍 Пошук по повідомленнях"
+                   oninput="renderCurrentRoom()">
 
             <div id="privateInfo">
-                Приватний чат з: <b id="privateRecipientName"></b>
-                <button onclick="cancelPrivateMode()">×</button>
+                Приватний чат з:
+                <b id="privateRecipientName"></b>
+
+                <button onclick="cancelPrivateMode()">
+                    ×
+                </button>
             </div>
 
             <ul id="messages"></ul>
@@ -564,32 +686,59 @@
             <div id="typingIndicator"></div>
 
             <div class="message-box">
-                <input id="message" placeholder="Введіть повідомлення" disabled>
-                <button id="sendButton" onclick="sendMessage()" disabled>Надіслати</button>
+
+                <input id="message"
+                       placeholder="Введіть повідомлення"
+                       disabled>
+
+                <button id="sendButton"
+                        onclick="sendMessage()"
+                        disabled>
+                    Надіслати
+                </button>
             </div>
         </div>
 
         <div class="panel stats-panel">
+
             <div class="map-box">
-                <button class="open-map-button" onclick="openMapModal()">🗺️ Відкрити справжню карту</button>
+
+                <button class="open-map-button"
+                        onclick="openMapModal()">
+                    🗺️ Відкрити карту України
+                </button>
             </div>
 
-            <h3>Користувачі онлайн по областях</h3>
+            <h3>
+                Користувачі онлайн по областях
+            </h3>
+
             <div id="stats"></div>
         </div>
     </div>
 </div>
 
 <div id="mapModal" class="map-modal">
+
     <div class="map-modal-content">
+
         <div class="map-modal-header">
-            <h2>🗺️ Географічна активність користувачів</h2>
-            <button onclick="closeMapModal()">×</button>
+
+            <h2>
+                🗺️ Географічна активність користувачів
+            </h2>
+
+            <button onclick="closeMapModal()">
+                ×
+            </button>
         </div>
 
         <p class="map-modal-info">
-            На карті показано онлайн-користувачів за координатами, отриманими через IP-геолокацію.
-            Натисни на маркер, щоб побачити користувача, область, місто, статус і координати.
+            На карті показані онлайн-користувачі,
+            визначені через IP-геолокацію.
+            Натисни на маркер,
+            щоб побачити область, місто,
+            координати і статус користувача.
         </p>
 
         <div id="realUkraineMap"></div>
@@ -597,909 +746,1122 @@
 </div>
 
 <script>
-    let stompClient = null;
-    let privateSubscription = null;
 
-    let currentUsername = "";
-    let currentRegion = "Запорізька область";
-    let currentCity = "Запоріжжя";
-    let currentLatitude = 47.8388;
-    let currentLongitude = 35.1396;
+let stompClient = null;
+let privateSubscription = null;
 
-    let detectedRegion = "";
-    let detectedCity = "";
-    let detectedLatitude = 47.8388;
-    let detectedLongitude = 35.1396;
+let currentUsername = "";
 
-    let selectedRegion = localStorage.getItem("selectedRegion") || "";
-    let currentStatus = "ONLINE";
-    let connected = false;
+let currentRegion = "Запорізька область";
+let currentCity = "Запоріжжя";
 
-    let currentRoom = "GENERAL";
-    let soundEnabled = true;
-    let privateRecipient = "";
+let currentLatitude = 47.8388;
+let currentLongitude = 35.1396;
 
-    let typingTimeout = null;
-    let typingSendTimeout = null;
+let detectedRegion = "";
+let detectedCity = "";
 
-    let mapStats = {};
-    let realMap = null;
-    let realMapMarkersLayer = null;
+let detectedLatitude = 47.8388;
+let detectedLongitude = 35.1396;
 
-    let messagesStore = {
-        GENERAL: [],
-        REGION: [],
-        PRIVATE: [],
-        SYSTEM: []
-    };
+let selectedRegion =
+    localStorage.getItem("selectedRegion") || "";
 
-    const regions = [
-        "Вінницька область",
-        "Волинська область",
-        "Дніпропетровська область",
-        "Донецька область",
-        "Житомирська область",
-        "Закарпатська область",
-        "Запорізька область",
-        "Івано-Франківська область",
-        "Київська область",
-        "Кіровоградська область",
-        "Луганська область",
-        "Львівська область",
-        "Миколаївська область",
-        "Одеська область",
-        "Полтавська область",
-        "Рівненська область",
-        "Сумська область",
-        "Тернопільська область",
-        "Харківська область",
-        "Херсонська область",
-        "Хмельницька область",
-        "Черкаська область",
-        "Чернівецька область",
-        "Чернігівська область"
-    ];
+let currentStatus = "ONLINE";
 
-    const regionCenters = {
-        "Вінницька область": [49.2328, 28.4810],
-        "Волинська область": [50.7472, 25.3254],
-        "Дніпропетровська область": [48.4647, 35.0462],
-        "Донецька область": [48.0159, 37.8029],
-        "Житомирська область": [50.2547, 28.6587],
-        "Закарпатська область": [48.6208, 22.2879],
-        "Запорізька область": [47.8388, 35.1396],
-        "Івано-Франківська область": [48.9226, 24.7111],
-        "Київська область": [50.4501, 30.5234],
-        "Кіровоградська область": [48.5079, 32.2623],
-        "Луганська область": [48.5740, 39.3078],
-        "Львівська область": [49.8397, 24.0297],
-        "Миколаївська область": [46.9750, 31.9946],
-        "Одеська область": [46.4825, 30.7233],
-        "Полтавська область": [49.5883, 34.5514],
-        "Рівненська область": [50.6199, 26.2516],
-        "Сумська область": [50.9077, 34.7981],
-        "Тернопільська область": [49.5535, 25.5948],
-        "Харківська область": [49.9935, 36.2304],
-        "Херсонська область": [46.6354, 32.6169],
-        "Хмельницька область": [49.4229, 26.9871],
-        "Черкаська область": [49.4444, 32.0598],
-        "Чернівецька область": [48.2915, 25.9403],
-        "Чернігівська область": [51.4982, 31.2893]
-    };
+let connected = false;
 
-    function createRegionSelect() {
-        let select = document.getElementById("regionSelect");
-        select.innerHTML = "";
+let currentRoom = "GENERAL";
 
-        regions.forEach(region => {
-            let option = document.createElement("option");
-            option.value = region;
-            option.innerText = region;
-            select.appendChild(option);
+let soundEnabled = true;
+
+let privateRecipient = "";
+
+let authMode = "login";
+
+let typingTimeout = null;
+let typingSendTimeout = null;
+
+let mapStats = {};
+
+let realMap = null;
+let realMapMarkersLayer = null;
+
+let messagesStore = {
+    GENERAL: [],
+    REGION: [],
+    PRIVATE: [],
+    SYSTEM: []
+};
+
+const regions = [
+    "Вінницька область",
+    "Волинська область",
+    "Дніпропетровська область",
+    "Донецька область",
+    "Житомирська область",
+    "Закарпатська область",
+    "Запорізька область",
+    "Івано-Франківська область",
+    "Київська область",
+    "Кіровоградська область",
+    "Луганська область",
+    "Львівська область",
+    "Миколаївська область",
+    "Одеська область",
+    "Полтавська область",
+    "Рівненська область",
+    "Сумська область",
+    "Тернопільська область",
+    "Харківська область",
+    "Херсонська область",
+    "Хмельницька область",
+    "Черкаська область",
+    "Чернівецька область",
+    "Чернігівська область"
+];
+
+const regionCenters = {
+
+    "Вінницька область": [49.2328, 28.4810],
+    "Волинська область": [50.7472, 25.3254],
+    "Дніпропетровська область": [48.4647, 35.0462],
+    "Донецька область": [48.0159, 37.8029],
+    "Житомирська область": [50.2547, 28.6587],
+    "Закарпатська область": [48.6208, 22.2879],
+    "Запорізька область": [47.8388, 35.1396],
+    "Івано-Франківська область": [48.9226, 24.7111],
+    "Київська область": [50.4501, 30.5234],
+    "Кіровоградська область": [48.5079, 32.2623],
+    "Луганська область": [48.5740, 39.3078],
+    "Львівська область": [49.8397, 24.0297],
+    "Миколаївська область": [46.9750, 31.9946],
+    "Одеська область": [46.4825, 30.7233],
+    "Полтавська область": [49.5883, 34.5514],
+    "Рівненська область": [50.6199, 26.2516],
+    "Сумська область": [50.9077, 34.7981],
+    "Тернопільська область": [49.5535, 25.5948],
+    "Харківська область": [49.9935, 36.2304],
+    "Херсонська область": [46.6354, 32.6169],
+    "Хмельницька область": [49.4229, 26.9871],
+    "Черкаська область": [49.4444, 32.0598],
+    "Чернівецька область": [48.2915, 25.9403],
+    "Чернігівська область": [51.4982, 31.2893]
+};
+
+function createRegionSelect() {
+
+    let select =
+        document.getElementById("regionSelect");
+
+    select.innerHTML = "";
+
+    regions.forEach(region => {
+
+        let option =
+            document.createElement("option");
+
+        option.value = region;
+        option.innerText = region;
+
+        select.appendChild(option);
+    });
+}
+
+function getRegionCenter(region) {
+
+    return regionCenters[region]
+        || [47.8388, 35.1396];
+}
+
+function updateUserInfoOnPage() {
+
+    document.getElementById("currentRegion").innerText =
+        currentRegion;
+
+    document.getElementById("currentCity").innerText =
+        currentCity;
+
+    document.getElementById("currentCoords").innerText =
+        Number(currentLatitude).toFixed(4)
+        + ", "
+        + Number(currentLongitude).toFixed(4);
+}
+function switchAuthMode(mode) {
+    authMode = mode;
+
+    document.getElementById("loginTab").classList.remove("active");
+    document.getElementById("registerTab").classList.remove("active");
+
+    if (mode === "login") {
+        document.getElementById("loginTab").classList.add("active");
+        document.getElementById("authMessage").innerText =
+            "Введіть ім’я та пароль для входу.";
+    } else {
+        document.getElementById("registerTab").classList.add("active");
+        document.getElementById("authMessage").innerText =
+            "Створіть новий акаунт.";
+    }
+}
+
+function authSubmit() {
+    let username = document.getElementById("loginUsername").value.trim();
+    let password = document.getElementById("loginPassword").value.trim();
+
+    if (username === "") {
+        document.getElementById("authMessage").innerText =
+            "Введіть ім’я користувача.";
+        return;
+    }
+
+    if (password.length < 4) {
+        document.getElementById("authMessage").innerText =
+            "Пароль має бути мінімум 4 символи.";
+        return;
+    }
+
+    let url = authMode === "login"
+        ? "/auth/login"
+        : "/auth/register";
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password,
+            region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById("authMessage").innerText =
+                    data.message;
+                return;
+            }
+
+            currentUsername = data.username;
+            currentRegion = data.region || currentRegion;
+            currentCity = data.city || currentCity;
+            currentLatitude = data.latitude || currentLatitude;
+            currentLongitude = data.longitude || currentLongitude;
+
+            loginAfterAuth();
+        })
+        .catch(() => {
+            document.getElementById("authMessage").innerText =
+                "Помилка підключення до сервера.";
         });
+}
+
+function loginAfterAuth() {
+    document.getElementById("currentUsername").innerText =
+        currentUsername;
+
+    document.getElementById("currentStatus").innerText =
+        getStatusText(currentStatus);
+
+    updateUserInfoOnPage();
+
+    document.getElementById("loginPage").style.display =
+        "none";
+
+    document.getElementById("chatPage").style.display =
+        "block";
+
+    if (!connected) {
+        connect(sendJoinMessage);
+    } else {
+        sendJoinMessage();
     }
+}
 
-    function getRegionCenter(region) {
-        return regionCenters[region] || [47.8388, 35.1396];
+function detectRegion() {
+    fetch("/api/geo/region")
+        .then(response => response.json())
+        .then(data => {
+            detectedRegion = data.region || "Запорізька область";
+            detectedCity = data.city || "Запоріжжя";
+            detectedLatitude = data.latitude || 47.8388;
+            detectedLongitude = data.longitude || 35.1396;
+
+            currentRegion = selectedRegion !== ""
+                ? selectedRegion
+                : detectedRegion;
+
+            currentCity = detectedCity;
+
+            if (selectedRegion !== "") {
+                let center = getRegionCenter(selectedRegion);
+                currentLatitude = center[0];
+                currentLongitude = center[1];
+            } else {
+                currentLatitude = detectedLatitude;
+                currentLongitude = detectedLongitude;
+            }
+
+            document.getElementById("detectedRegion").innerText =
+                currentRegion;
+
+            document.getElementById("detectedCity").innerText =
+                currentCity;
+
+            document.getElementById("detectedCoords").innerText =
+                Number(currentLatitude).toFixed(4)
+                + ", "
+                + Number(currentLongitude).toFixed(4);
+
+            document.getElementById("regionSelect").value =
+                currentRegion;
+
+            updateUserInfoOnPage();
+        })
+        .catch(() => {
+            currentRegion = selectedRegion !== ""
+                ? selectedRegion
+                : "Запорізька область";
+
+            currentCity = "Запоріжжя";
+
+            let center = getRegionCenter(currentRegion);
+
+            currentLatitude = center[0];
+            currentLongitude = center[1];
+
+            document.getElementById("detectedRegion").innerText =
+                currentRegion;
+
+            document.getElementById("detectedCity").innerText =
+                currentCity;
+
+            document.getElementById("detectedCoords").innerText =
+                Number(currentLatitude).toFixed(4)
+                + ", "
+                + Number(currentLongitude).toFixed(4);
+
+            document.getElementById("regionSelect").value =
+                currentRegion;
+
+            updateUserInfoOnPage();
+        });
+}
+
+function openMapModal() {
+    document.getElementById("mapModal").classList.add("show");
+
+    setTimeout(function () {
+        initRealMap();
+        updateRealMapMarkers(mapStats);
+
+        if (realMap) {
+            realMap.invalidateSize();
+        }
+    }, 100);
+}
+
+function closeMapModal() {
+    document.getElementById("mapModal").classList.remove("show");
+}
+
+function initRealMap() {
+    if (realMap !== null) return;
+
+    realMap = L.map("realUkraineMap").setView([48.7, 31.2], 6);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(realMap);
+
+    realMapMarkersLayer = L.layerGroup().addTo(realMap);
+}
+
+function updateRealMapMarkers(data) {
+    if (realMap === null || realMapMarkersLayer === null) return;
+
+    realMapMarkersLayer.clearLayers();
+
+    let totalUsers = 0;
+
+    regions.forEach(region => {
+        let users = data[region] || [];
+        totalUsers += users.length;
+
+        users.forEach(user => {
+            let lat = user.latitude || getRegionCenter(region)[0];
+            let lon = user.longitude || getRegionCenter(region)[1];
+
+            let marker = L.marker([lat, lon]);
+
+            marker.bindPopup(`
+                <b>${escapeHtml(user.username)}</b><br>
+                Статус: ${getStatusText(user.status)}<br>
+                Область: ${escapeHtml(region)}<br>
+                Місто: ${escapeHtml(user.city || "Невідоме місто")}<br>
+                Координати: ${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}<br>
+                <button onclick="startPrivateMessage('${escapeJs(user.username)}'); closeMapModal();">
+                    Написати приватно
+                </button>
+            `);
+
+            marker.addTo(realMapMarkersLayer);
+        });
+    });
+
+    if (totalUsers === 0) {
+        L.marker([currentLatitude, currentLongitude])
+            .bindPopup("Поки що на карті немає інших онлайн-користувачів.")
+            .addTo(realMapMarkersLayer);
     }
+}
 
-    function openMapModal() {
-        document.getElementById("mapModal").classList.add("show");
+function escapeHtml(text) {
+    if (!text) return "";
 
+    return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function escapeJs(text) {
+    if (!text) return "";
+    return String(text).replaceAll("'", "\\'");
+}
+
+function toggleSettingsMenu() {
+    let menu = document.getElementById("settingsMenu");
+    menu.style.display =
+        menu.style.display === "block"
+            ? "none"
+            : "block";
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+
+    localStorage.setItem(
+        "theme",
+        document.body.classList.contains("dark")
+            ? "dark"
+            : "light"
+    );
+
+    if (realMap !== null) {
         setTimeout(function () {
-            initRealMap();
-            updateRealMapMarkers(mapStats);
             realMap.invalidateSize();
         }, 100);
     }
+}
 
-    function closeMapModal() {
-        document.getElementById("mapModal").classList.remove("show");
-    }
+function changeUsername() {
+    alert("Ім’я тепер змінюється через акаунт. Для зміни імені створіть новий акаунт.");
+}
 
-    function initRealMap() {
-        if (realMap !== null) return;
+function toggleSound() {
+    soundEnabled = !soundEnabled;
 
-        realMap = L.map("realUkraineMap").setView([48.7, 31.2], 6);
+    localStorage.setItem(
+        "soundEnabled",
+        soundEnabled ? "true" : "false"
+    );
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 18,
-            attribution: "&copy; OpenStreetMap"
-        }).addTo(realMap);
+    updateSettingsStatus();
+}
 
-        realMapMarkersLayer = L.layerGroup().addTo(realMap);
-    }
+function changeStatus() {
+    currentStatus = document.getElementById("statusSelect").value;
 
-    function updateRealMapMarkers(data) {
-        if (realMap === null || realMapMarkersLayer === null) return;
+    localStorage.setItem("status", currentStatus);
 
-        realMapMarkersLayer.clearLayers();
+    document.getElementById("currentStatus").innerText =
+        getStatusText(currentStatus);
 
-        let totalUsers = 0;
-
-        regions.forEach(region => {
-            let users = data[region] || [];
-            totalUsers += users.length;
-
-            users.forEach(user => {
-                let lat = user.latitude || getRegionCenter(region)[0];
-                let lon = user.longitude || getRegionCenter(region)[1];
-
-                let marker = L.marker([lat, lon]);
-
-                marker.bindPopup(`
-                    <b>${escapeHtml(user.username)}</b><br>
-                    Статус: ${getStatusText(user.status)}<br>
-                    Область: ${escapeHtml(region)}<br>
-                    Місто: ${escapeHtml(user.city || "Невідоме місто")}<br>
-                    Координати: ${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}<br>
-                    <button onclick="startPrivateMessage('${escapeJs(user.username)}'); closeMapModal();">
-                        Написати приватно
-                    </button>
-                `);
-
-                marker.addTo(realMapMarkersLayer);
-            });
-        });
-
-        if (totalUsers === 0) {
-            L.marker([currentLatitude, currentLongitude])
-                .bindPopup("Поки що на карті немає інших онлайн-користувачів.")
-                .addTo(realMapMarkersLayer);
-        }
-    }
-
-    function escapeHtml(text) {
-        if (!text) return "";
-        return String(text)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    function escapeJs(text) {
-        if (!text) return "";
-        return String(text).replaceAll("'", "\\'");
-    }
-
-    function updateUserInfoOnPage() {
-        document.getElementById("currentRegion").innerText = currentRegion;
-        document.getElementById("currentCity").innerText = currentCity;
-        document.getElementById("currentCoords").innerText =
-            Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
-    }
-
-    function detectRegion() {
-        fetch("/api/geo/region")
-            .then(response => response.json())
-            .then(data => {
-                detectedRegion = data.region || "Запорізька область";
-                detectedCity = data.city || "Запоріжжя";
-                detectedLatitude = data.latitude || 47.8388;
-                detectedLongitude = data.longitude || 35.1396;
-
-                currentRegion = selectedRegion !== "" ? selectedRegion : detectedRegion;
-                currentCity = detectedCity;
-
-                if (selectedRegion !== "") {
-                    let center = getRegionCenter(selectedRegion);
-                    currentLatitude = center[0];
-                    currentLongitude = center[1];
-                } else {
-                    currentLatitude = detectedLatitude;
-                    currentLongitude = detectedLongitude;
-                }
-
-                document.getElementById("detectedRegion").innerText = currentRegion;
-                document.getElementById("detectedCity").innerText = currentCity;
-                document.getElementById("detectedCoords").innerText =
-                    Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
-
-                document.getElementById("regionSelect").value = currentRegion;
-                updateUserInfoOnPage();
-            })
-            .catch(() => {
-                currentRegion = selectedRegion !== "" ? selectedRegion : "Запорізька область";
-                currentCity = "Запоріжжя";
-
-                let center = getRegionCenter(currentRegion);
-                currentLatitude = center[0];
-                currentLongitude = center[1];
-
-                document.getElementById("detectedRegion").innerText = currentRegion;
-                document.getElementById("detectedCity").innerText = currentCity;
-                document.getElementById("detectedCoords").innerText =
-                    Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
-
-                document.getElementById("regionSelect").value = currentRegion;
-                updateUserInfoOnPage();
-            });
-    }
-
-    function toggleSettingsMenu() {
-        let menu = document.getElementById("settingsMenu");
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-
-    function toggleTheme() {
-        document.body.classList.toggle("dark");
-        localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-
-        if (realMap !== null) {
-            setTimeout(function () {
-                realMap.invalidateSize();
-            }, 100);
-        }
-    }
-
-    function changeUsername() {
-        let newName = prompt("Введіть нове ім’я:");
-
-        if (newName === null) return;
-
-        newName = newName.trim();
-
-        if (newName === "") {
-            alert("Ім’я не може бути порожнім");
-            return;
-        }
-
-        let oldName = currentUsername;
-
-        currentUsername = newName;
-        document.getElementById("currentUsername").innerText = currentUsername;
-
-        subscribePrivateMessages();
-        loadHistory();
-
-        if (connected && stompClient) {
-            stompClient.send("/app/leave", {}, JSON.stringify({
-                username: oldName,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "LEAVE"
-            }));
-
-            stompClient.send("/app/join", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "JOIN",
-                status: currentStatus
-            }));
-        }
-    }
-
-    function toggleSound() {
-        soundEnabled = !soundEnabled;
-        localStorage.setItem("soundEnabled", soundEnabled ? "true" : "false");
-        updateSettingsStatus();
-    }
-
-    function changeStatus() {
-        currentStatus = document.getElementById("statusSelect").value;
-        localStorage.setItem("status", currentStatus);
-
-        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
-
-        if (connected && stompClient && currentUsername !== "") {
-            stompClient.send("/app/status", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "STATUS",
-                status: currentStatus
-            }));
-        }
-    }
-
-    function changeRegion() {
-        selectedRegion = document.getElementById("regionSelect").value;
-        currentRegion = selectedRegion;
-
-        let center = getRegionCenter(currentRegion);
-        currentLatitude = center[0];
-        currentLongitude = center[1];
-
-        localStorage.setItem("selectedRegion", selectedRegion);
-
-        document.getElementById("detectedRegion").innerText = currentRegion;
-        document.getElementById("detectedCoords").innerText =
-            Number(currentLatitude).toFixed(4) + ", " + Number(currentLongitude).toFixed(4);
-
-        updateUserInfoOnPage();
-        loadHistory();
-
-        if (connected && stompClient && currentUsername !== "") {
-            stompClient.send("/app/status", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "STATUS",
-                status: currentStatus
-            }));
-        }
-
-        alert("Область змінено на: " + currentRegion);
-    }
-
-    function getStatusText(status) {
-        if (status === "AWAY") return "🟡 Відійшов";
-        if (status === "BUSY") return "🔴 Зайнятий";
-        return "🟢 Онлайн";
-    }
-
-    function updateSettingsStatus() {
-        document.getElementById("soundStatus").innerText = soundEnabled ? "Увімкнено" : "Вимкнено";
-    }
-
-    function loadSettings() {
-        if (localStorage.getItem("theme") === "dark") {
-            document.body.classList.add("dark");
-        }
-
-        soundEnabled = localStorage.getItem("soundEnabled") !== "false";
-        currentStatus = localStorage.getItem("status") || "ONLINE";
-
-        document.getElementById("statusSelect").value = currentStatus;
-        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
-
-        if (selectedRegion !== "") {
-            currentRegion = selectedRegion;
-        }
-
-        document.getElementById("regionSelect").value = currentRegion;
-        updateSettingsStatus();
-    }
-
-    function getCurrentTime() {
-        return new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    }
-
-    function formatMessageTime(createdAt) {
-        if (!createdAt) {
-            return getCurrentTime();
-        }
-
-        let date = new Date(createdAt);
-
-        return date.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    }
-
-    function playNotificationSound() {
-        if (!soundEnabled) return;
-
-        let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-        audio.volume = 0.3;
-        audio.play().catch(function () {});
-    }
-
-    function connect(callback) {
-        let socket = new SockJS(window.location.origin + "/chat");
-        stompClient = Stomp.over(socket);
-        stompClient.debug = null;
-
-        stompClient.connect({}, function () {
-            connected = true;
-
-            stompClient.subscribe("/topic/messages", function (msg) {
-                let message = JSON.parse(msg.body);
-                message.time = formatMessageTime(message.createdAt);
-                messagesStore.SYSTEM.push(message);
-                renderCurrentRoom();
-            });
-
-            stompClient.subscribe("/topic/room/GENERAL", function (msg) {
-                let message = JSON.parse(msg.body);
-                message.time = formatMessageTime(message.createdAt);
-                messagesStore.GENERAL.push(message);
-                renderCurrentRoom();
-
-                if (message.username !== currentUsername) {
-                    playNotificationSound();
-                }
-            });
-
-            stompClient.subscribe("/topic/room/REGION", function (msg) {
-                let message = JSON.parse(msg.body);
-                message.time = formatMessageTime(message.createdAt);
-
-                if (message.region === currentRegion) {
-                    messagesStore.REGION.push(message);
-                    renderCurrentRoom();
-
-                    if (message.username !== currentUsername) {
-                        playNotificationSound();
-                    }
-                }
-            });
-
-            stompClient.subscribe("/topic/stats", function (msg) {
-                let data = JSON.parse(msg.body);
-                mapStats = data;
-                renderStats(data);
-                updateRealMapMarkers(data);
-            });
-
-            stompClient.subscribe("/topic/typing", function (msg) {
-                showTyping(JSON.parse(msg.body));
-            });
-
-            subscribePrivateMessages();
-
-            document.getElementById("message").disabled = false;
-            document.getElementById("sendButton").disabled = false;
-
-            if (callback) callback();
-
-        }, function () {
-            connected = false;
-
-            setTimeout(function () {
-                connect(callback);
-            }, 3000);
-        });
-    }
-
-    function subscribePrivateMessages() {
-        if (!stompClient || !connected || currentUsername === "") return;
-
-        if (privateSubscription) {
-            privateSubscription.unsubscribe();
-        }
-
-        privateSubscription = stompClient.subscribe("/topic/private/" + currentUsername, function (msg) {
-            let message = JSON.parse(msg.body);
-            message.time = formatMessageTime(message.createdAt);
-            messagesStore.PRIVATE.push(message);
-            renderCurrentRoom();
-
-            if (message.username !== currentUsername) {
-                playNotificationSound();
-            }
-        });
-    }
-
-    function login() {
-        currentUsername = document.getElementById("loginUsername").value.trim();
-
-        if (currentUsername === "") {
-            alert("Введіть ім'я");
-            return;
-        }
-
-        document.getElementById("currentUsername").innerText = currentUsername;
-        document.getElementById("currentStatus").innerText = getStatusText(currentStatus);
-        updateUserInfoOnPage();
-
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("chatPage").style.display = "block";
-
-        if (!connected) {
-            connect(sendJoinMessage);
-        } else {
-            sendJoinMessage();
-        }
-    }
-
-    function sendJoinMessage() {
-        loadHistory();
-
-        stompClient.send("/app/join", {}, JSON.stringify({
+    if (connected && stompClient && currentUsername !== "") {
+        stompClient.send("/app/status", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
             city: currentCity,
             latitude: currentLatitude,
             longitude: currentLongitude,
             content: "",
-            type: "JOIN",
+            type: "STATUS",
             status: currentStatus
         }));
-
-        changeStatus();
     }
+}
 
-    function loadHistory() {
-        fetch("/api/messages/general")
-            .then(response => response.json())
-            .then(data => {
-                messagesStore.GENERAL = [];
-                messagesStore.SYSTEM = [];
+function changeRegion() {
+    selectedRegion = document.getElementById("regionSelect").value;
+    currentRegion = selectedRegion;
 
-                data.forEach(message => {
-                    message.time = formatMessageTime(message.createdAt);
+    let center = getRegionCenter(currentRegion);
 
-                    if (message.type === "JOIN" || message.type === "LEAVE") {
-                        messagesStore.SYSTEM.push(message);
-                    }
+    currentLatitude = center[0];
+    currentLongitude = center[1];
 
-                    if (message.type === "GENERAL") {
-                        messagesStore.GENERAL.push(message);
-                    }
-                });
+    localStorage.setItem("selectedRegion", selectedRegion);
 
-                renderCurrentRoom();
-            });
+    document.getElementById("detectedRegion").innerText =
+        currentRegion;
 
-        fetch("/api/messages/region?region=" + encodeURIComponent(currentRegion))
-            .then(response => response.json())
-            .then(data => {
-                messagesStore.REGION = [];
+    document.getElementById("detectedCoords").innerText =
+        Number(currentLatitude).toFixed(4)
+        + ", "
+        + Number(currentLongitude).toFixed(4);
 
-                data.forEach(message => {
-                    message.time = formatMessageTime(message.createdAt);
+    updateUserInfoOnPage();
+    loadHistory();
 
-                    if (message.type === "REGION") {
-                        messagesStore.REGION.push(message);
-                    }
-                });
-
-                renderCurrentRoom();
-            });
-
-        fetch("/api/messages/private?username=" + encodeURIComponent(currentUsername))
-            .then(response => response.json())
-            .then(data => {
-                messagesStore.PRIVATE = [];
-
-                data.forEach(message => {
-                    message.time = formatMessageTime(message.createdAt);
-                    messagesStore.PRIVATE.push(message);
-                });
-
-                renderCurrentRoom();
-            });
-    }
-
-    function switchRoom(room) {
-        currentRoom = room;
-
-        document.querySelectorAll(".tabs button").forEach(function (button) {
-            button.classList.remove("active");
-        });
-
-        document.getElementById("tab" + room).classList.add("active");
-
-        if (room === "GENERAL") {
-            document.getElementById("message").placeholder = "Повідомлення в загальний чат";
-        }
-
-        if (room === "REGION") {
-            document.getElementById("message").placeholder = "Повідомлення в чат області";
-        }
-
-        if (room === "PRIVATE") {
-            if (privateRecipient !== "") {
-                document.getElementById("message").placeholder = "Приватне повідомлення для " + privateRecipient;
-            } else {
-                document.getElementById("message").placeholder = "Оберіть користувача справа";
-            }
-        }
-
-        renderCurrentRoom();
-    }
-
-    function sendMessage() {
-        let content = document.getElementById("message").value.trim();
-
-        if (content === "" || !connected) return;
-
-        if (currentRoom === "PRIVATE") {
-            if (privateRecipient === "") {
-                alert("Оберіть користувача справа у списку онлайн");
-                return;
-            }
-
-            stompClient.send("/app/private", {}, JSON.stringify({
-                username: currentUsername,
-                recipient: privateRecipient,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: content,
-                type: "PRIVATE"
-            }));
-        } else {
-            stompClient.send("/app/room", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: content,
-                type: currentRoom
-            }));
-        }
-
-        document.getElementById("message").value = "";
-        document.getElementById("typingIndicator").innerText = "";
-    }
-
-    document.getElementById("message").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            sendMessage();
-        }
-    });
-
-    document.getElementById("message").addEventListener("input", function () {
-        sendTyping();
-    });
-
-    function sendTyping() {
-        if (!connected || !stompClient || currentUsername === "") return;
-
-        if (typingSendTimeout) return;
-
-        stompClient.send("/app/typing", {}, JSON.stringify({
+    if (connected && stompClient && currentUsername !== "") {
+        stompClient.send("/app/status", {}, JSON.stringify({
             username: currentUsername,
             region: currentRegion,
             city: currentCity,
             latitude: currentLatitude,
             longitude: currentLongitude,
-            content: currentRoom,
-            type: "TYPING",
-            recipient: privateRecipient
+            content: "",
+            type: "STATUS",
+            status: currentStatus
         }));
+    }
+}
 
-        typingSendTimeout = setTimeout(function () {
-            typingSendTimeout = null;
-        }, 800);
+function getStatusText(status) {
+    if (status === "AWAY") return "🟡 Відійшов";
+    if (status === "BUSY") return "🔴 Зайнятий";
+    return "🟢 Онлайн";
+}
+
+function updateSettingsStatus() {
+    document.getElementById("soundStatus").innerText =
+        soundEnabled ? "Увімкнено" : "Вимкнено";
+}
+
+function loadSettings() {
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
     }
 
-    function showTyping(message) {
-        if (message.username === currentUsername) return;
-        if (message.content !== currentRoom) return;
-        if (currentRoom === "REGION" && message.region !== currentRegion) return;
+    soundEnabled =
+        localStorage.getItem("soundEnabled") !== "false";
 
-        if (currentRoom === "PRIVATE") {
-            if (message.recipient !== currentUsername) return;
-            document.getElementById("typingIndicator").innerText = message.username + " пише приватне повідомлення...";
-        } else {
-            document.getElementById("typingIndicator").innerText = message.username + " друкує...";
-        }
+    currentStatus =
+        localStorage.getItem("status") || "ONLINE";
 
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(function () {
-            document.getElementById("typingIndicator").innerText = "";
-        }, 2000);
+    document.getElementById("statusSelect").value =
+        currentStatus;
+
+    document.getElementById("currentStatus").innerText =
+        getStatusText(currentStatus);
+
+    if (selectedRegion !== "") {
+        currentRegion = selectedRegion;
     }
 
-    function renderCurrentRoom() {
-        let messagesList = document.getElementById("messages");
-        let searchText = document.getElementById("searchInput").value.toLowerCase();
+    document.getElementById("regionSelect").value =
+        currentRegion;
 
-        messagesList.innerHTML = "";
+    updateSettingsStatus();
+}
 
-        let list = [];
+function getCurrentTime() {
+    return new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
 
-        if (currentRoom === "GENERAL") {
-            list = messagesStore.SYSTEM.concat(messagesStore.GENERAL);
-        }
+function formatMessageTime(createdAt) {
+    if (!createdAt) {
+        return getCurrentTime();
+    }
 
-        if (currentRoom === "REGION") {
-            list = messagesStore.SYSTEM.concat(messagesStore.REGION);
-        }
+    let date = new Date(createdAt);
 
-        if (currentRoom === "PRIVATE") {
-            list = messagesStore.PRIVATE;
-        }
+    return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
 
-        list.forEach(function (message) {
-            let textForSearch = (
-                (message.username || "") + " " +
-                (message.region || "") + " " +
-                (message.city || "") + " " +
-                (message.content || "") + " " +
-                (message.recipient || "")
-            ).toLowerCase();
+function playNotificationSound() {
+    if (!soundEnabled) return;
 
-            if (!textForSearch.includes(searchText)) return;
+    let audio =
+        new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 
-            appendMessageToList(message);
+    audio.volume = 0.3;
+    audio.play().catch(function () {});
+}
+
+function connect(callback) {
+    let socket =
+        new SockJS(window.location.origin + "/chat");
+
+    stompClient =
+        Stomp.over(socket);
+
+    stompClient.debug = null;
+
+    stompClient.connect({}, function () {
+        connected = true;
+
+        stompClient.subscribe("/topic/messages", function (msg) {
+            let message = JSON.parse(msg.body);
+            message.time = formatMessageTime(message.createdAt);
+
+            messagesStore.SYSTEM.push(message);
+            renderCurrentRoom();
         });
 
-        messagesList.scrollTop = messagesList.scrollHeight;
+        stompClient.subscribe("/topic/room/GENERAL", function (msg) {
+            let message = JSON.parse(msg.body);
+            message.time = formatMessageTime(message.createdAt);
+
+            messagesStore.GENERAL.push(message);
+            renderCurrentRoom();
+
+            if (message.username !== currentUsername) {
+                playNotificationSound();
+            }
+        });
+
+        stompClient.subscribe("/topic/room/REGION", function (msg) {
+            let message = JSON.parse(msg.body);
+            message.time = formatMessageTime(message.createdAt);
+
+            if (message.region === currentRegion) {
+                messagesStore.REGION.push(message);
+                renderCurrentRoom();
+
+                if (message.username !== currentUsername) {
+                    playNotificationSound();
+                }
+            }
+        });
+
+        stompClient.subscribe("/topic/stats", function (msg) {
+            let data = JSON.parse(msg.body);
+
+            mapStats = data;
+
+            renderStats(data);
+            updateRealMapMarkers(data);
+        });
+
+        stompClient.subscribe("/topic/typing", function (msg) {
+            showTyping(JSON.parse(msg.body));
+        });
+
+        subscribePrivateMessages();
+
+        document.getElementById("message").disabled = false;
+        document.getElementById("sendButton").disabled = false;
+
+        if (callback) callback();
+
+    }, function () {
+        connected = false;
+
+        setTimeout(function () {
+            connect(callback);
+        }, 3000);
+    });
+}
+
+function subscribePrivateMessages() {
+    if (!stompClient || !connected || currentUsername === "") return;
+
+    if (privateSubscription) {
+        privateSubscription.unsubscribe();
     }
 
-    function appendMessageToList(message) {
-        let li = document.createElement("li");
+    privateSubscription =
+        stompClient.subscribe(
+            "/topic/private/" + currentUsername,
+            function (msg) {
+                let message = JSON.parse(msg.body);
+                message.time = formatMessageTime(message.createdAt);
 
-        if (message.type === "JOIN" || message.type === "LEAVE") {
-            li.className = "system";
-            li.innerText = "[" + message.time + "] " + message.content;
-            document.getElementById("messages").appendChild(li);
+                messagesStore.PRIVATE.push(message);
+                renderCurrentRoom();
+
+                if (message.username !== currentUsername) {
+                    playNotificationSound();
+                }
+            }
+        );
+}
+
+function sendJoinMessage() {
+    loadHistory();
+
+    stompClient.send("/app/join", {}, JSON.stringify({
+        username: currentUsername,
+        region: currentRegion,
+        city: currentCity,
+        latitude: currentLatitude,
+        longitude: currentLongitude,
+        content: "",
+        type: "JOIN",
+        status: currentStatus
+    }));
+
+    changeStatus();
+}
+
+function loadHistory() {
+    fetch("/api/messages/general")
+        .then(response => response.json())
+        .then(data => {
+            messagesStore.GENERAL = [];
+            messagesStore.SYSTEM = [];
+
+            data.forEach(message => {
+                message.time =
+                    formatMessageTime(message.createdAt);
+
+                if (message.type === "JOIN"
+                    || message.type === "LEAVE") {
+                    messagesStore.SYSTEM.push(message);
+                }
+
+                if (message.type === "GENERAL") {
+                    messagesStore.GENERAL.push(message);
+                }
+            });
+
+            renderCurrentRoom();
+        });
+
+    fetch("/api/messages/region?region="
+        + encodeURIComponent(currentRegion))
+        .then(response => response.json())
+        .then(data => {
+            messagesStore.REGION = [];
+
+            data.forEach(message => {
+                message.time =
+                    formatMessageTime(message.createdAt);
+
+                if (message.type === "REGION") {
+                    messagesStore.REGION.push(message);
+                }
+            });
+
+            renderCurrentRoom();
+        });
+
+    fetch("/api/messages/private?username="
+        + encodeURIComponent(currentUsername))
+        .then(response => response.json())
+        .then(data => {
+            messagesStore.PRIVATE = [];
+
+            data.forEach(message => {
+                message.time =
+                    formatMessageTime(message.createdAt);
+
+                messagesStore.PRIVATE.push(message);
+            });
+
+            renderCurrentRoom();
+        });
+}
+
+function switchRoom(room) {
+    currentRoom = room;
+
+    document.querySelectorAll(".tabs button")
+        .forEach(function (button) {
+            button.classList.remove("active");
+        });
+
+    document.getElementById("tab" + room)
+        .classList.add("active");
+
+    if (room === "GENERAL") {
+        document.getElementById("message").placeholder =
+            "Повідомлення в загальний чат";
+    }
+
+    if (room === "REGION") {
+        document.getElementById("message").placeholder =
+            "Повідомлення в чат області";
+    }
+
+    if (room === "PRIVATE") {
+        if (privateRecipient !== "") {
+            document.getElementById("message").placeholder =
+                "Приватне повідомлення для " + privateRecipient;
+        } else {
+            document.getElementById("message").placeholder =
+                "Оберіть користувача справа";
+        }
+    }
+
+    renderCurrentRoom();
+}
+
+function sendMessage() {
+    let content =
+        document.getElementById("message").value.trim();
+
+    if (content === "" || !connected) return;
+
+    if (currentRoom === "PRIVATE") {
+        if (privateRecipient === "") {
+            alert("Оберіть користувача справа у списку онлайн");
             return;
         }
 
-        if (message.type === "PRIVATE") {
-            li.className = message.username === currentUsername ? "my-message private" : "other-message private";
-        } else {
-            li.className = message.username === currentUsername ? "my-message" : "other-message";
-        }
-
-        let meta = document.createElement("div");
-        meta.className = "message-meta";
-
-        if (message.type === "PRIVATE") {
-            meta.innerText = "[" + message.time + "] 🔒 " + message.username + " → " + message.recipient;
-        } else {
-            meta.innerText = "[" + message.time + "] " + message.username + " • " + message.region;
-        }
-
-        let content = document.createElement("div");
-        content.className = "message-content";
-        content.innerText = message.content;
-
-        li.appendChild(meta);
-        li.appendChild(content);
-
-        document.getElementById("messages").appendChild(li);
+        stompClient.send("/app/private", {}, JSON.stringify({
+            username: currentUsername,
+            recipient: privateRecipient,
+            region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            content: content,
+            type: "PRIVATE"
+        }));
+    } else {
+        stompClient.send("/app/room", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            content: content,
+            type: currentRoom
+        }));
     }
 
-    function logout() {
-        if (stompClient && connected && currentUsername !== "") {
-            stompClient.send("/app/leave", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "LEAVE"
-            }));
+    document.getElementById("message").value = "";
+    document.getElementById("typingIndicator").innerText = "";
+}
 
-            stompClient.disconnect(function () {
-                location.reload();
-            });
-        } else {
-            location.reload();
-        }
-    }
-
-    function startPrivateMessage(username) {
-        if (username === currentUsername) return;
-
-        privateRecipient = username;
-
-        document.getElementById("privateRecipientName").innerText = username;
-        document.getElementById("privateInfo").style.display = "block";
-
-        switchRoom("PRIVATE");
-    }
-
-    function cancelPrivateMode() {
-        privateRecipient = "";
-
-        document.getElementById("privateInfo").style.display = "none";
-        document.getElementById("privateRecipientName").innerText = "";
-
-        if (currentRoom === "PRIVATE") {
-            document.getElementById("message").placeholder = "Оберіть користувача справа";
-        }
-    }
-
-    function renderStats(data) {
-        let statsDiv = document.getElementById("stats");
-        statsDiv.innerHTML = "";
-
-        regions.forEach(region => {
-            let users = data[region] || [];
-
-            let wrapper = document.createElement("div");
-
-            let header = document.createElement("div");
-            header.className = "region-header";
-
-            let name = document.createElement("span");
-            name.className = "region-name";
-            name.innerHTML = `<span class="arrow">▶</span><span>${region}</span>`;
-
-            let count = document.createElement("span");
-            count.className = "region-count";
-            count.innerText = users.length;
-
-            let usersDiv = document.createElement("div");
-            usersDiv.className = "region-users";
-
-            if (users.length === 0) {
-                usersDiv.innerHTML = "<div>Немає користувачів онлайн</div>";
-            } else {
-                users.forEach(user => {
-                    let username = user.username;
-                    let status = user.status;
-                    let city = user.city || "Невідоме місто";
-
-                    let userDiv = document.createElement("div");
-                    userDiv.innerText = getStatusText(status) + " " + username + " • " + city;
-
-                    userDiv.onclick = function () {
-                        startPrivateMessage(username);
-                    };
-
-                    usersDiv.appendChild(userDiv);
-                });
-            }
-
-            header.onclick = function () {
-                let arrow = header.querySelector(".arrow");
-
-                if (usersDiv.style.display === "block") {
-                    usersDiv.style.display = "none";
-                    arrow.innerText = "▶";
-                } else {
-                    usersDiv.style.display = "block";
-                    arrow.innerText = "▼";
-                }
-            };
-
-            header.appendChild(name);
-            header.appendChild(count);
-
-            wrapper.appendChild(header);
-            wrapper.appendChild(usersDiv);
-
-            statsDiv.appendChild(wrapper);
-        });
-    }
-
-    window.addEventListener("beforeunload", function () {
-        if (stompClient && connected && currentUsername !== "") {
-            stompClient.send("/app/leave", {}, JSON.stringify({
-                username: currentUsername,
-                region: currentRegion,
-                city: currentCity,
-                latitude: currentLatitude,
-                longitude: currentLongitude,
-                content: "",
-                type: "LEAVE"
-            }));
+document.getElementById("message")
+    .addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
         }
     });
 
-    createRegionSelect();
-    loadSettings();
-    detectRegion();
+document.getElementById("message")
+    .addEventListener("input", function () {
+        sendTyping();
+    });
+
+function sendTyping() {
+    if (!connected || !stompClient || currentUsername === "") return;
+
+    if (typingSendTimeout) return;
+
+    stompClient.send("/app/typing", {}, JSON.stringify({
+        username: currentUsername,
+        region: currentRegion,
+        city: currentCity,
+        latitude: currentLatitude,
+        longitude: currentLongitude,
+        content: currentRoom,
+        type: "TYPING",
+        recipient: privateRecipient
+    }));
+
+    typingSendTimeout =
+        setTimeout(function () {
+            typingSendTimeout = null;
+        }, 800);
+}
+
+function showTyping(message) {
+    if (message.username === currentUsername) return;
+    if (message.content !== currentRoom) return;
+
+    if (currentRoom === "REGION"
+        && message.region !== currentRegion) {
+        return;
+    }
+
+    if (currentRoom === "PRIVATE") {
+        if (message.recipient !== currentUsername) return;
+
+        document.getElementById("typingIndicator").innerText =
+            message.username + " пише приватне повідомлення...";
+    } else {
+        document.getElementById("typingIndicator").innerText =
+            message.username + " друкує...";
+    }
+
+    clearTimeout(typingTimeout);
+
+    typingTimeout =
+        setTimeout(function () {
+            document.getElementById("typingIndicator").innerText = "";
+        }, 2000);
+}
+
+function renderCurrentRoom() {
+    let messagesList =
+        document.getElementById("messages");
+
+    let searchText =
+        document.getElementById("searchInput").value.toLowerCase();
+
+    messagesList.innerHTML = "";
+
+    let list = [];
+
+    if (currentRoom === "GENERAL") {
+        list = messagesStore.SYSTEM.concat(messagesStore.GENERAL);
+    }
+
+    if (currentRoom === "REGION") {
+        list = messagesStore.SYSTEM.concat(messagesStore.REGION);
+    }
+
+    if (currentRoom === "PRIVATE") {
+        list = messagesStore.PRIVATE;
+    }
+
+    list.forEach(function (message) {
+        let textForSearch = (
+            (message.username || "") + " "
+            + (message.region || "") + " "
+            + (message.city || "") + " "
+            + (message.content || "") + " "
+            + (message.recipient || "")
+        ).toLowerCase();
+
+        if (!textForSearch.includes(searchText)) return;
+
+        appendMessageToList(message);
+    });
+
+    messagesList.scrollTop =
+        messagesList.scrollHeight;
+}
+
+function appendMessageToList(message) {
+    let li =
+        document.createElement("li");
+
+    if (message.type === "JOIN"
+        || message.type === "LEAVE") {
+
+        li.className = "system";
+        li.innerText =
+            "[" + message.time + "] " + message.content;
+
+        document.getElementById("messages").appendChild(li);
+        return;
+    }
+
+    if (message.type === "PRIVATE") {
+        li.className =
+            message.username === currentUsername
+                ? "my-message private"
+                : "other-message private";
+    } else {
+        li.className =
+            message.username === currentUsername
+                ? "my-message"
+                : "other-message";
+    }
+
+    let meta =
+        document.createElement("div");
+
+    meta.className = "message-meta";
+
+    if (message.type === "PRIVATE") {
+        meta.innerText =
+            "[" + message.time + "] 🔒 "
+            + message.username
+            + " → "
+            + message.recipient;
+    } else {
+        meta.innerText =
+            "[" + message.time + "] "
+            + message.username
+            + " • "
+            + message.region;
+    }
+
+    let content =
+        document.createElement("div");
+
+    content.className = "message-content";
+    content.innerText = message.content;
+
+    li.appendChild(meta);
+    li.appendChild(content);
+
+    document.getElementById("messages").appendChild(li);
+}
+
+function logout() {
+    if (stompClient && connected && currentUsername !== "") {
+        stompClient.send("/app/leave", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            content: "",
+            type: "LEAVE"
+        }));
+
+        stompClient.disconnect(function () {
+            location.reload();
+        });
+    } else {
+        location.reload();
+    }
+}
+
+function startPrivateMessage(username) {
+    if (username === currentUsername) return;
+
+    privateRecipient = username;
+
+    document.getElementById("privateRecipientName").innerText =
+        username;
+
+    document.getElementById("privateInfo").style.display =
+        "block";
+
+    switchRoom("PRIVATE");
+}
+
+function cancelPrivateMode() {
+    privateRecipient = "";
+
+    document.getElementById("privateInfo").style.display =
+        "none";
+
+    document.getElementById("privateRecipientName").innerText =
+        "";
+
+    if (currentRoom === "PRIVATE") {
+        document.getElementById("message").placeholder =
+            "Оберіть користувача справа";
+    }
+}
+
+function renderStats(data) {
+    let statsDiv =
+        document.getElementById("stats");
+
+    statsDiv.innerHTML = "";
+
+    regions.forEach(region => {
+        let users = data[region] || [];
+
+        let wrapper =
+            document.createElement("div");
+
+        let header =
+            document.createElement("div");
+
+        header.className = "region-header";
+
+        let name =
+            document.createElement("span");
+
+        name.className = "region-name";
+        name.innerHTML =
+            `<span class="arrow">▶</span><span>${region}</span>`;
+
+        let count =
+            document.createElement("span");
+
+        count.className = "region-count";
+        count.innerText = users.length;
+
+        let usersDiv =
+            document.createElement("div");
+
+        usersDiv.className = "region-users";
+
+        if (users.length === 0) {
+            usersDiv.innerHTML =
+                "<div>Немає користувачів онлайн</div>";
+        } else {
+            users.forEach(user => {
+                let username = user.username;
+                let status = user.status;
+                let city = user.city || "Невідоме місто";
+
+                let userDiv =
+                    document.createElement("div");
+
+                userDiv.innerText =
+                    getStatusText(status)
+                    + " "
+                    + username
+                    + " • "
+                    + city;
+
+                userDiv.onclick = function () {
+                    startPrivateMessage(username);
+                };
+
+                usersDiv.appendChild(userDiv);
+            });
+        }
+
+        header.onclick = function () {
+            let arrow =
+                header.querySelector(".arrow");
+
+            if (usersDiv.style.display === "block") {
+                usersDiv.style.display = "none";
+                arrow.innerText = "▶";
+            } else {
+                usersDiv.style.display = "block";
+                arrow.innerText = "▼";
+            }
+        };
+
+        header.appendChild(name);
+        header.appendChild(count);
+
+        wrapper.appendChild(header);
+        wrapper.appendChild(usersDiv);
+
+        statsDiv.appendChild(wrapper);
+    });
+}
+
+window.addEventListener("beforeunload", function () {
+    if (stompClient && connected && currentUsername !== "") {
+        stompClient.send("/app/leave", {}, JSON.stringify({
+            username: currentUsername,
+            region: currentRegion,
+            city: currentCity,
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            content: "",
+            type: "LEAVE"
+        }));
+    }
+});
+
+createRegionSelect();
+loadSettings();
+detectRegion();
+
 </script>
 
 </body>
